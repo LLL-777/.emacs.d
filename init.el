@@ -132,7 +132,6 @@
 ;;  )
 
 (add-to-list 'load-path "~/.emacs.d/custom")
-(add-to-list 'load-path "/opt/local/bin/julia")
 (load-theme 'solarized-dark t)
 
 ;; (defun my-LaTeX-mode()
@@ -183,22 +182,10 @@
   :hook (company-mode . company-box-mode))
 
 
-(use-package vterm
-    :ensure t)
-(require 'julia-repl)
-(use-package lsp-julia
-  :after julia-repl vterm
-  :config
-  (setq lsp-julia-default-environment "/Users/trinity/.julia/environments/v1.9")
-  (setq lsp-julia-package-dir nil)
-  (setq lsp-julia-flags `("-J/Users/trinity/.julia/environments/v1.9/languageserver.so"))
-  (add-hook 'julia-mode-hook 'julia-repl-mode)
-  (add-hook 'ess-julia-mode-hook #'lsp-mode))
 
 
 (add-hook 'c-mode-hook 'company-mode)
 (add-hook 'c++-mode-hook 'company-mode)
-;; (add-hook 'julia-mode-hook 'company-mode)
 (add-hook 'lsp-mode-hook 'company-mode)
 (add-hook 'after-init-hook 'global-company-mode)
 
@@ -213,7 +200,6 @@
   :hook (
          (c-mode . lsp-deferred)
 	 (c++-mode . lsp-deferred)
- 	 (julia-mode . lsp-deferred)
          ;; if you want which-key integration
          (lsp-mode . lsp-enable-which-key-integration))
   :commands (lsp lsp-deferred))
@@ -230,9 +216,9 @@
 
 
 
-(setq clang-format-executable "/usr/local/bin/clang-format")
+(setq clang-format-executable "/opt/local/bin/clang-format")
 (require 'clang-format)
-(setq clang-format-style "/Users/trinity/.emacs.d/.clang-format")
+;; (setq clang-format-style "/Users/trinity/.emacs.d/.clang-format")
 (global-set-key (kbd "s-F") #'clang-format-region)
 ;; (define-key lsp-mode-map "\C-clTi" 'lsp-ui-sideline-toggle-symbols-info)
 (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
