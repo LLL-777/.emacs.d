@@ -6,6 +6,8 @@
 (getenv "PATH")(setenv "PATH"(concat "/Library/TeX/texbin"
                                      ":"(getenv "PATH")))
 
+
+
 ;
 ;
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -60,6 +62,7 @@
 		(?\{ . ?\})
         (?\< . ?\>)))
 ;;//~
+
 
 ;; //移动选中的行。
 (defun move-text-internal (arg)
@@ -184,76 +187,78 @@
 
 
 
-(add-hook 'c-mode-hook 'company-mode)
-(add-hook 'c++-mode-hook 'company-mode)
-(add-hook 'lsp-mode-hook 'company-mode)
+;; (add-hook 'c-mode-hook 'company-mode)
+;; (add-hook 'c++-mode-hook 'company-mode)
+;; (add-hook 'lsp-mode-hook 'company-mode)
 (add-hook 'after-init-hook 'global-company-mode)
 
 
+(require 'eglot)
+(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+(add-hook 'c-mode-hook 'eglot-ensure)
+(add-hook 'c++-mode-hook 'eglot-ensure)
 
-(use-package lsp-mode
-  :ensure t
-  :init
-  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  (setq lsp-keymap-prefix "C-c l"
-	lsp-file-watch-threshold 500)
-  :hook (
-         (c-mode . lsp-deferred)
-	 (c++-mode . lsp-deferred)
-         ;; if you want which-key integration
-         (lsp-mode . lsp-enable-which-key-integration))
-  :commands (lsp lsp-deferred))
-;; (use-package lsp-ui :commands lsp-ui-mode)
-(use-package lsp-ui
-  :ensure t
-  :config
-  ;; M- .
-  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
-  ;; M-?
-  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
-  (setq lsp-ui-doc-position 'top)
-  (lsp-ui-sideline-toggle-symbols-info))
-
-
-
-(setq clang-format-executable "/opt/local/bin/clang-format")
+(setq clang-format-executable "/opt/local/bin/clang-format-mp-17")
 (require 'clang-format)
 ;; (setq clang-format-style "/Users/trinity/.emacs.d/.clang-format")
 (global-set-key (kbd "s-F") #'clang-format-region)
-;; (define-key lsp-mode-map "\C-clTi" 'lsp-ui-sideline-toggle-symbols-info)
-(use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
-;; (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
-(use-package treemacs
-  :ensure t
-  :defer t
-  :config
-  (treemacs-tag-follow-mode)
-  :bind
-  (:map global-map
-        ("M-0"       . treemacs-select-window)
-        ("C-x t 1"   . treemacs-delete-other-windows)
-        ("C-x t t"   . treemacs)
-        ("C-x t B"   . treemacs-bookmark)
-        ;; ("C-x t C-t" . treemacs-find-file)
-        ("C-x t M-t" . treemacs-find-tag))
-  (:map treemacs-mode-map
-	("/" . treemacs-advanced-helpful-hydra)))
-
-(use-package treemacs-projectile
-  :ensure t
-  :after (treemacs projectile))
-
-(use-package lsp-treemacs
-  :ensure t
-  :after (treemacs lsp))
-
-(use-package dap-mode)
 
 (require 'ivy-config)
-(put 'erase-buffer 'disabled nil)
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :init
+;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+;;   (setq lsp-keymap-prefix "C-c l"
+;; 	lsp-file-watch-threshold 500)
+;;   :hook (
+;;          (c-mode . lsp-deferred)
+;; 	 (c++-mode . lsp-deferred)
+;;          ;; if you want which-key integration
+;;          (lsp-mode . lsp-enable-which-key-integration))
+;;   :commands (lsp lsp-deferred))
+;; ;; (use-package lsp-ui :commands lsp-ui-mode)
+;; (use-package lsp-ui
+;;   :ensure t
+;;   :config
+;;   ;; M- .
+;;   (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+;;   ;; M-?
+;;   (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+;;   (setq lsp-ui-doc-position 'top)
+;;   (lsp-ui-sideline-toggle-symbols-info))
+
+
+
+
+;; (define-key lsp-mode-map "\C-clTi" 'lsp-ui-sideline-toggle-symbols-info)
+;; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+;; ;; (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+;; (use-package treemacs
+;;   :ensure t
+;;   :defer t
+;;   :config
+;;   (treemacs-tag-follow-mode)
+;;   :bind
+;;   (:map global-map
+;;         ("M-0"       . treemacs-select-window)
+;;         ("C-x t 1"   . treemacs-delete-other-windows)
+;;         ("C-x t t"   . treemacs)
+;;         ("C-x t B"   . treemacs-bookmark)
+;;         ;; ("C-x t C-t" . treemacs-find-file)
+;;         ("C-x t M-t" . treemacs-find-tag))
+;;   (:map treemacs-mode-map
+;; 	("/" . treemacs-advanced-helpful-hydra)))
+
+;; (use-package treemacs-projectile
+;;   :ensure t
+;;   :after (treemacs projectile))
+
+;; (use-package lsp-treemacs
+;;   :ensure t
+;;   :after (treemacs lsp))
+
+;; (use-package dap-mode)
+;; ;; (require 'dap-lldb)
+
+
