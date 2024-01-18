@@ -1,4 +1,5 @@
 ;; -*- lexical-binding: t; -*-
+;; test
 
 (set-language-environment "UTF-8")
 ;; DEBUG switch t or nil
