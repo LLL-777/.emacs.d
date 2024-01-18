@@ -11,8 +11,10 @@
 ;
 ;
 (defalias 'yes-or-no-p 'y-or-n-p)
+(if(not (eq system-type 'darwin))
+    (menu-bar-mode -1))
 (tool-bar-mode -1)
-;; (scroll-bar-mode )
+(scroll-bar-mode -1)
 (global-hl-line-mode t)
 ;; (setq inhibit-startup-screen t)
 
@@ -36,7 +38,10 @@
 (column-number-mode 1)
 (global-hl-line-mode 1)
 (electric-pair-mode 1)
-(set-face-attribute 'default nil :height 180)
+;;(set-face-attribute 'default nil :height 130)
+(add-to-list 'default-frame-alist
+	     '(font . "DejaVu Sans Mono-10"))
+
 
 (setq-default explicit-shell-file-name "/bin/tcsh")
 (setq-default shell-file-name "/bin/tcsh")
@@ -124,7 +129,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box lsp-julia auctex clang-format+ pdf-tools dap-mode which-key rust-mode lsp-treemacs lsp-ivy lsp-ui sideline-lsp counsel ivy command-log-mode company pyvenv-auto julia-repl julia-mode lsp-mode use-package solarized-theme nyan-mode)))
+   '(vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box lsp-julia auctex clang-format+ pdf-tools dap-mode which-key rust-mode counsel ivy command-log-mode company pyvenv-auto julia-repl julia-mode use-package solarized-theme nyan-mode)))
 
 ;;  '(TeX-view-program-list (quote (("Preview" "\"open -a Preview.app %o\""))))
 ;; (custom-set-faces
@@ -135,7 +140,12 @@
 ;;  )
 
 (add-to-list 'load-path "~/.emacs.d/custom")
-(load-theme 'solarized-dark t)
+
+;;(if (not (eq system-type 'gnu/linux))
+;; (load-theme 'solarized-dark t))
+
+(if (display-graphic-p)
+    (load-theme 'solarized-dark t))
 
 ;; (defun my-LaTeX-mode()
 ;;   (add-to-list 'TeX-view-program-list '("Preview" "open -a Preview.app %o"))
@@ -161,8 +171,9 @@
 
 ;; optional if you want which-key integration
 (use-package which-key
-    :config
-    (which-key-mode))
+  :ensure
+  :config
+  (which-key-mode))
 
 ;; (company-mode t)
 (use-package company
@@ -198,7 +209,7 @@
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
 
-(setq clang-format-executable "/opt/local/bin/clang-format-mp-17")
+(setq clang-format-executable "/usr/lib/llvm/16/bin/clang-format")
 (require 'clang-format)
 ;; (setq clang-format-style "/Users/trinity/.emacs.d/.clang-format")
 (global-set-key (kbd "s-F") #'clang-format-region)
