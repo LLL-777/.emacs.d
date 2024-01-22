@@ -12,7 +12,11 @@
 ;
 (defalias 'yes-or-no-p 'y-or-n-p)
 (if(not (eq system-type 'darwin))
-    (menu-bar-mode -1))
+    (menu-bar-mode -1)
+(add-to-list 'default-frame-alist
+	     '(font . "DejaVu Sans Mono-10")))
+
+
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (global-hl-line-mode t)
@@ -39,8 +43,7 @@
 (global-hl-line-mode 1)
 (electric-pair-mode 1)
 ;;(set-face-attribute 'default nil :height 130)
-(add-to-list 'default-frame-alist
-	     '(font . "DejaVu Sans Mono-10"))
+
 
 
 (setq-default explicit-shell-file-name "/bin/tcsh")
