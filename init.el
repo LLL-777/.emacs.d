@@ -14,7 +14,7 @@
 (if(not (eq system-type 'darwin))
     (menu-bar-mode -1)
 (add-to-list 'default-frame-alist
-	     '(font . "DejaVu Sans Mono-10")))
+	     '(font . "DejaVu Sans Mono-14")))
 
 
 (tool-bar-mode -1)
@@ -132,7 +132,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box lsp-julia auctex clang-format+ pdf-tools dap-mode which-key rust-mode counsel ivy command-log-mode company pyvenv-auto julia-repl julia-mode use-package solarized-theme nyan-mode)))
+   '(lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
 
 ;;  '(TeX-view-program-list (quote (("Preview" "\"open -a Preview.app %o\""))))
 ;; (custom-set-faces
@@ -276,3 +276,9 @@
 ;; ;; (require 'dap-lldb)
 
 
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

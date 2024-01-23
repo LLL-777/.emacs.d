@@ -1,8 +1,8 @@
 ;; -*- lexical-binding: t; -*-
 
-(use-package lsp-ivy
-  :ensure t
-  :after (lsp-mode))
+;; (use-package lsp-ivy
+;;   :ensure t
+;;   :after (lsp-mode))
 
 (require 'ivy)
 (ivy-mode 1)
