@@ -14,7 +14,7 @@
 (if(not (eq system-type 'darwin))
     (menu-bar-mode -1)
 (add-to-list 'default-frame-alist
-	     '(font . "DejaVu Sans Mono-14")))
+	     '(font . "DejaVu Sans Mono-16")))
 
 
 (tool-bar-mode -1)
