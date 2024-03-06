@@ -132,7 +132,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
+   '(eglot lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
 
 ;;  '(TeX-view-program-list (quote (("Preview" "\"open -a Preview.app %o\""))))
 ;; (custom-set-faces
@@ -212,7 +212,7 @@
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
 
-(setq clang-format-executable "/usr/lib/llvm/16/bin/clang-format")
+;; (setq clang-format-executable "/usr/lib/llvm/16/bin/clang-format")
 (require 'clang-format)
 ;; (setq clang-format-style "/Users/trinity/.emacs.d/.clang-format")
 (global-set-key (kbd "s-F") #'clang-format-region)
