@@ -6,6 +6,8 @@
 ;; (getenv "PATH")(setenv "PATH"(concat "/Library/TeX/texbin"
 ;;                                      ":"(getenv "PATH")))
 
+(getenv)
+
 ;
 (defalias 'yes-or-no-p 'y-or-n-p)
 (if(not (eq system-type 'darwin))
