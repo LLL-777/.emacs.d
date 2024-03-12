@@ -208,7 +208,8 @@
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
 
-;; (setq clang-format-executable "/usr/lib/llvm/16/bin/clang-format")
+(if(eq ( system-type 'darwin))
+    (setq clang-format-executable "/usr/local/opt/llvm@16/bin/clang-format"))
 (require 'clang-format)
 ;; (setq clang-format-style "/Users/trinity/.emacs.d/.clang-format")
 (global-set-key (kbd "s-F") #'clang-format-region)
