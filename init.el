@@ -3,8 +3,12 @@
 (set-language-environment "UTF-8")
 ;; DEBUG switch t or nil
 ;; (setq debug-on-error nil)
-;; (getenv "PATH")(setenv "PATH"(concat "/Library/TeX/texbin"
-;;                                      ":"(getenv "PATH")))
+
+;; (setenv "PATH" (concat (getenv "PATH") "$HOME/.cargo/bin"))
+;; (setq exec-path (append exec-path '("$HOME/.cargo/bin")))
+
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-copy-envs '("PATH" "MANPATH")))
 
 ;
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -195,24 +199,26 @@
   :hook (company-mode . company-box-mode))
 
 
-
-
 ;; (add-hook 'c-mode-hook 'company-mode)
 ;; (add-hook 'c++-mode-hook 'company-mode)
 ;; (add-hook 'lsp-mode-hook 'company-mode)
 (add-hook 'after-init-hook 'global-company-mode)
+(add-hook 'rust-mode-hook 'company-mode)
 
-
+(require 'rust-mode)
 (require 'eglot)
 (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+(add-to-list 'eglot-server-programs '(rust-mode . ("rust-analyzer")))
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
+(add-hook 'rust-mode-hook 'eglot-ensure)
 
 ;; (if(eq system-type 'darwin)
 ;;     (setq clang-format-executable "/usr/local/opt/llvm@16/bin/clang-format"))
 (require 'clang-format)
 ;; (setq clang-format-style "/Users/trinity/.emacs.d/.clang-format")
 (global-set-key (kbd "s-F") #'clang-format-region)
+;; (global-set-key (kbd "s-F") #'eglot-format)
 
 (require 'ivy-config)
 
