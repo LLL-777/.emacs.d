@@ -17,13 +17,14 @@
 (cond
  ((eq system-type 'darwin)
   (progn
-    (add-hook 'window-setup-hook 'toggle-frame-maximized t)))
+    (add-hook 'window-setup-hook 'toggle-frame-maximized t)
+    (add-to-list 'default-frame-alist
+	     '(font . "DejaVu Sans Mono-16"))))
  ((eq system-type 'berkeley-unix)
   (progn
-    (menu-bar-mode -1))))
-
-(add-to-list 'default-frame-alist
-	     '(font . "DejaVu Sans Mono-16"))
+    (menu-bar-mode -1)
+    (add-to-list 'default-frame-alist
+	     '(font . "DejaVu Sans Mono-10")))))
 
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
