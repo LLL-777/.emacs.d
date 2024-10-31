@@ -20,7 +20,7 @@
     (add-hook 'window-setup-hook 'toggle-frame-maximized t)
     (add-to-list 'default-frame-alist
 	     '(font . "DejaVu Sans Mono-16"))))
- ((eq system-type 'berkeley-unix)
+ (t
   (progn
     (menu-bar-mode -1)
     (add-to-list 'default-frame-alist
@@ -137,7 +137,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(magit eglot lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
+   '(ace-window magit eglot lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
 
 ;;  '(TeX-view-program-list (quote (("Preview" "\"open -a Preview.app %o\""))))
 ;; (custom-set-faces
@@ -154,6 +154,7 @@
 
 (if (display-graphic-p)
     (load-theme 'solarized-dark t))
+
 
 ;; (defun my-LaTeX-mode()
 ;;   (add-to-list 'TeX-view-program-list '("Preview" "open -a Preview.app %o"))
