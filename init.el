@@ -1,4 +1,5 @@
-;; -*- lexical-binding: t; -*-
+ ;; -*- lexical-binding: t; -*-
+
 
 (set-language-environment "UTF-8")
 ;; DEBUG switch t or nil
@@ -6,7 +7,11 @@
 ;; (getenv "PATH")(setenv "PATH"(concat "/Library/TeX/texbin"
 ;;                                      ":"(getenv "PATH")))
 
+;; (when (memq window-system '(mac ns x))
+;;   (exec-path-from-shell-initialize))
+
 ;
+;; (defalias 'yes-or-no-p 'y-or-n-p)
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 ;; (if(not (eq system-type 'darwin))
@@ -19,7 +24,7 @@
   (progn
     (add-hook 'window-setup-hook 'toggle-frame-maximized t)
     (add-to-list 'default-frame-alist
-	     '(font . "DejaVu Sans Mono-16"))))
+	     '(font . "VictorMono Nerd Font-16"))))
  ((eq system-type 'berkeley-unix)
   (progn
     (menu-bar-mode -1)
@@ -51,8 +56,8 @@
 
 
 
-(setq-default explicit-shell-file-name "/bin/tcsh")
-(setq-default shell-file-name "/bin/tcsh")
+;; (setq-default explicit-shell-file-name "/bin/zsh")
+;; (setq-default shell-file-name "/bin/zsh")
 
 ;; M-g g
 (defun go-line-with-feedback ()
@@ -137,7 +142,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(magit eglot lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
+   '(cmake-mode exec-path-from-shell ace-window magit eglot vterm projector treemacs-projectile ivy-hydra company-box clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
 
 ;;  '(TeX-view-program-list (quote (("Preview" "\"open -a Preview.app %o\""))))
 ;; (custom-set-faces
@@ -149,11 +154,15 @@
 
 (add-to-list 'load-path "~/.emacs.d/custom")
 
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize)
+  (load-theme 'solarized-dark t))
+
 ;;(if (not (eq system-type 'gnu/linux))
 ;; (load-theme 'solarized-dark t))
 
-(if (display-graphic-p)
-    (load-theme 'solarized-dark t))
+;; (if (display-graphic-p)
+;;     (load-theme 'solarized-dark t))
 
 ;; (defun my-LaTeX-mode()
 ;;   (add-to-list 'TeX-view-program-list '("Preview" "open -a Preview.app %o"))
@@ -163,19 +172,18 @@
 ;; (add-hook 'LaTeX-mode-hook 'my-LaTeX-mode)
 
 
-;; (require 'tex-site)
 
 ;; nyancat
-(require 'nyan-mode)
-(nyan-mode)
-(nyan-start-animation)
-;;(nyan-stop-animation)
-(nyan-toggle-wavy-trail)
+(use-package nyan-mode
+  :ensure
+  :init (nyan-mode)
+  :config
+  (nyan-start-animation)
+  (nyan-toggle-wavy-trail))
 
 ;; (command-log-mode)
 ;; (global-command-log-mode)
 ;; (clm/open-command-log-buffer)
-
 
 ;; optional if you want which-key integration
 (use-package which-key
@@ -203,9 +211,6 @@
   :if window-system
   :hook (company-mode . company-box-mode))
 
-
-
-
 ;; (add-hook 'c-mode-hook 'company-mode)
 ;; (add-hook 'c++-mode-hook 'company-mode)
 ;; (add-hook 'lsp-mode-hook 'company-mode)
@@ -217,21 +222,11 @@
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
 
-;; (if(eq system-type 'darwin)
-;;     (setq clang-format-executable "/usr/local/opt/llvm@16/bin/clang-format"))
 (require 'clang-format)
-;; (setq clang-format-style "/Users/trinity/.emacs.d/.clang-format")
 (global-set-key (kbd "s-F") #'clang-format-region)
 
+(use-package cmake-mode
+  :ensure
+  :init (cmake-mode))
+
 (require 'ivy-config)
-
-
-;; (use-package dap-mode)
-;; ;; (require 'dap-lldb)
-
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
