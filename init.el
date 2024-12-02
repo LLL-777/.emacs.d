@@ -12,7 +12,7 @@
 
 ;
 ;; (defalias 'yes-or-no-p 'y-or-n-p)
-(defalias 'yes-or-no-p 'y-or-n-p)
+
 
 ;; (if(not (eq system-type 'darwin))
 ;;     (menu-bar-mode -1)
@@ -24,17 +24,17 @@
   (progn
     (add-hook 'window-setup-hook 'toggle-frame-maximized t)
     (add-to-list 'default-frame-alist
-<<<<<<< HEAD
-	     '(font . "VictorMono Nerd Font-16"))))
+		 '(font . "VictorMono Nerd Font-16"))))
+ (progn
  ((eq system-type 'berkeley-unix)
-=======
-	     '(font . "DejaVu Sans Mono-16"))))
- (t
->>>>>>> fa1b34143268502035a0d00c46cb7d84245ad271
+	     '(font . "DejaVu Sans Mono-16")))
   (progn
     (menu-bar-mode -1)
     (add-to-list 'default-frame-alist
-	     '(font . "DejaVu Sans Mono-10")))))
+		 '(font . "DejaVu Sans Mono-10"))))
+
+
+
 
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -147,11 +147,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-<<<<<<< HEAD
-   '(cmake-mode exec-path-from-shell ace-window magit eglot vterm projector treemacs-projectile ivy-hydra company-box clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
-=======
    '(ace-window magit eglot lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
->>>>>>> fa1b34143268502035a0d00c46cb7d84245ad271
 
 ;;  '(TeX-view-program-list (quote (("Preview" "\"open -a Preview.app %o\""))))
 ;; (custom-set-faces
