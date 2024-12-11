@@ -1,6 +1,5 @@
  ;; -*- lexical-binding: t; -*-
 
-
 (set-language-environment "UTF-8")
 ;; DEBUG switch t or nil
 ;; (setq debug-on-error nil)
@@ -19,6 +18,10 @@
 ;; (add-to-list 'default-frame-alist
 ;; 	     '(font . "DejaVu Sans Mono-16")))
 
+
+
+
+
 (cond
  ((eq system-type 'darwin)
   (progn
@@ -32,8 +35,6 @@
     (menu-bar-mode -1)
     (add-to-list 'default-frame-alist
 		 '(font . "DejaVu Sans Mono-10"))))
-
-
 
 
 (tool-bar-mode -1)
@@ -63,16 +64,19 @@
 
 ;; (setq-default explicit-shell-file-name "/bin/zsh")
 ;; (setq-default shell-file-name "/bin/zsh")
-
+(setq display-line-numbers-type 'relative)
+(global-display-line-numbers-mode t)
 ;; M-g g
 (defun go-line-with-feedback ()
   "Show line numbers temporarily, while prompting for the line number input"
   (interactive)
   (unwind-protect
       (progn
+	(setq display-line-numbers-type 'absolute)
 	(display-line-numbers-mode 1)
-	(goto-line (read-number "Goto line: ")))
-    (display-line-numbers-mode 0)))
+	(goto-line (read-number "Goto line: "))
+        (setq display-line-numbers-type 'relative)
+	(global-display-line-numbers-mode t))))
 (global-set-key [remap goto-line] 'go-line-with-feedback)
 
 (global-set-key (kbd "C-x o") 'ace-window)
@@ -123,8 +127,6 @@
 ;;//~
 
 ;; (fido-mode 1)
-
-
 
 (require 'package)
 (add-to-list 'package-archives
@@ -231,8 +233,8 @@
 (require 'clang-format)
 (global-set-key (kbd "s-F") #'clang-format-region)
 
-(use-package cmake-mode
-  :ensure
-  :init (cmake-mode))
+;; (use-package cmake-mode
+;;   :ensure
+;;   :init (cmake-mode))
 
 (require 'ivy-config)
