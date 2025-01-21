@@ -28,10 +28,13 @@
 
 (cond
  ((eq system-type 'darwin)
- "MacOS 开启默认窗口最大化,字体为 VictorMono"
+ "初始化MacOS系统参数"
     (add-hook 'window-setup-hook 'toggle-frame-maximized t)
     (add-to-list 'default-frame-alist
-		 '(font . "VictorMono Nerd Font-16")))
+		 '(font . "VictorMono Nerd Font-16"))
+    (setq mac-option-modifier 'meta)
+    (setq mac-command-modifier 'super)
+    (setq mac-control-modifier 'control))
  ((eq system-type 'berkeley-unix)
   "FreeBSD 系统的默认字体,字号为16"
 	     '(font . "DejaVu Sans Mono-16"))

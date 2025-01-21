@@ -66,19 +66,16 @@
 ;;   (setq company-box-scrollbar nil)
 ;;   (add-hook 'term-mode-hook (lambda () (company-box-mode -1))))
 
-
 (require 'eglot)
 (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
-
 
 (require 'clang-format)
 (global-set-key (kbd "s-F") #'clang-format-region)
 ;; (use-package cmake-mode
 ;;   :ensure
 ;;   :init (cmake-mode))
-
 
 (require 'ivy-config)
 
