@@ -12,7 +12,7 @@
 ;; (defalias 'yes-or-no-p 'y-or-n-p)
 (setq auto-save-default nil
       make-backup-files nil)
-
+(global-auto-revert-mode t)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (global-hl-line-mode t)

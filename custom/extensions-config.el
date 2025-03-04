@@ -10,10 +10,10 @@
 ;; 	     '("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa") t)
 
 
+(require 'use-package)
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
-(require 'use-package)
 (setq use-package-always-ensure t)
 
 (custom-set-variables
@@ -66,10 +66,20 @@
 ;;   (setq company-box-scrollbar nil)
 ;;   (add-hook 'term-mode-hook (lambda () (company-box-mode -1))))
 
+
+
 (require 'eglot)
-(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+;; (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd")
+
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
+
+
+(require 'julia-config)
+(add-to-list 'eglot-server-programs
+             '(julia-mode . ("julia" "-e using LanguageServer, LanguageServer.SymbolServer; runserver()"))
+	     '((c++-mode c-mode) . ("clangd")))
+
 
 (require 'clang-format)
 (global-set-key (kbd "s-F") #'clang-format-region)
@@ -77,8 +87,19 @@
 ;;   :ensure
 ;;   :init (cmake-mode))
 
+(setq org-latex-compiler "lualatex")
+(setq org-startup-with-latex-preview t)
+(with-eval-after-load 'org (global-org-modern-mode))
+(setq org-modern-hide-stars t
+      org-hide-emphasis-markers t
+      org-modern-block-fringe t
+      org-modern-label-border 0.3
+      org-modern-list '((?- . "•") (?+ . "➤") (?' . "◦"))
+      org-modern-table-vertical 1
+      org-modern-table-horizontal 0.2)
+
+
 (require 'ivy-config)
+(require 'treemacs-config)
 
 (provide 'extensions-config)
-
-
