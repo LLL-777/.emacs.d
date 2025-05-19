@@ -27,13 +27,21 @@
 (global-set-key (kbd "C-c V") 'ivy-pop-view)
 
 (defun my-buffer-list-filter (buffer)
-  "过滤掉不需要的缓冲区，比如以空格或 `*` 开头的缓冲区."
-  (not (string-match-p "\\`\\( \\|\\*\\).*\\'" (buffer-name buffer))))
+  "过滤掉临时缓冲区，但保留交互性缓冲区如 *shell* 等."
+  (let ((name (buffer-name buffer)))
+    (not (or
+          (string-prefix-p " " name)
+          (and (string-match-p "\\`\\*.*\\*\\'" name)
+               (not (member name '("*shell*" "*eshell*" "*vterm*" "*ielm*"))))))))
+
 (defun my-switch-to-buffer ()
   "只列出有用的缓冲区."
   (interactive)
   (let ((filtered-buffers (seq-filter #'my-buffer-list-filter (buffer-list))))
-   (switch-to-buffer
-     (completing-read "Switch to buffer: " (mapcar #'buffer-name filtered-buffers)))))
+    (switch-to-buffer
+     (completing-read "Switch to buffer: "
+                      (mapcar #'buffer-name filtered-buffers)))))
+
 (global-set-key (kbd "C-x b") #'my-switch-to-buffer)
+
 (provide 'ivy-config)

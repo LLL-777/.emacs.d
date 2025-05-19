@@ -12,6 +12,8 @@
 ;; (defalias 'yes-or-no-p 'y-or-n-p)
 (setq auto-save-default nil
       make-backup-files nil)
+(setq dired-use-ls-dired nil)
+
 (global-auto-revert-mode t)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -24,6 +26,15 @@
 ;;     (menu-bar-mode -1)
 ;; (add-to-list 'default-frame-alist
 ;; 	     '(font . "DejaVu Sans Mono-16")))
+
+(defun my-clean-shell-mode ()
+  "优化 shell 模式体验：关闭回显、设置编码等。"
+  (setq comint-process-echoes t)
+  (setq comint-scroll-to-bottom-on-input t)
+  (setq comint-scroll-to-bottom-on-output t)
+  (setq comint-move-point-for-output t))
+(add-hook 'shell-mode-hook #'my-clean-shell-mode)
+
 
 
 (cond
@@ -73,41 +84,7 @@
 		(?\< . ?\>)))
 ;;//~
 
-
-;; //移动选中的行。
-(defun move-text-internal (arg)
-   (cond
-    ((and mark-active transient-mark-mode)
-     (if (> (point) (mark))
-            (exchange-point-and-mark))
-     (let ((column (current-column))
-              (text (delete-and-extract-region (point) (mark))))
-       (forward-line arg)
-       (move-to-column column t)
-       (set-mark (point))
-       (insert text)
-       (exchange-point-and-mark)
-       (setq deactivate-mark nil)))
-    (t
-     (beginning-of-line)
-     (when (or (> arg 0) (not (bobp)))
-       (forward-line)
-       (when (or (< arg 0) (not (eobp)))
-            (transpose-lines arg))
-       (forward-line -1)))))
-(defun move-text-down (arg)
-   "Move region (transient-mark-mode active) or current line
-  arg lines down."
-   (interactive "*p")
-   (move-text-internal arg))
-(defun move-text-up (arg)
-   "Move region (transient-mark-mode active) or current line
-  arg lines up."
-   (interactive "*p")
-   (move-text-internal (- arg)))
-(global-set-key (kbd "C-s-n") #'move-text-down)
-(global-set-key (kbd "C-s-p") #'move-text-up)
-;;//~
+(require 'move-text)
 
 ;; (fido-mode 1)
 

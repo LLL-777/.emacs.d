@@ -3,12 +3,10 @@
 (setq package-enable-at-startup nil)
 (setq package-quickstart t)
 
-(require 'package)
+(eval-when-compile
+  (require 'use-package))
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.org/packages/") t)
-;; (add-to-list 'package-archives
-;; 	     '("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa") t)
-
+             '("melpa" . "https://melpa.org/packages/") t)
 
 (require 'use-package)
 (unless (package-installed-p 'use-package)
@@ -16,36 +14,20 @@
   (package-install 'use-package))
 (setq use-package-always-ensure t)
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(ace-window magit eglot lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode)))
-
-
 ;; (global-set-key (kbd "C-x o") 'ace-window)
 (use-package ace-window
   :bind ("C-x o" . ace-window))
 
-;; (if (not (eq system-type 'gnu/linux))
-;; (load-theme 'solarized-dark t))
-;; (if (display-graphic-p)
-;;     (load-theme 'solarized-dark t))
-
-
 
 ;; optional if you want which-key integration
 (use-package which-key
-  :ensure
+  :ensure t
   :config
   (which-key-mode))
 
 
 (use-package company
   :ensure t
-  :defer t
   :hook (after-init . global-company-mode)
   :config
   ;; 只需敲 1 个字母就开始进行自动补全
@@ -69,37 +51,51 @@
 
 
 (require 'eglot)
-;; (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd")
-
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
 
-
 (require 'julia-config)
 (add-to-list 'eglot-server-programs
-             '(julia-mode . ("julia" "-e using LanguageServer, LanguageServer.SymbolServer; runserver()"))
 	     '((c++-mode c-mode) . ("clangd")))
 
+(add-to-list 'eglot-server-programs
+             '(julia-mode . ("julia" "-e using LanguageServer, LanguageServer.SymbolServer; runserver()")))
 
-(require 'clang-format)
-(global-set-key (kbd "s-F") #'clang-format-region)
-;; (use-package cmake-mode
-;;   :ensure
-;;   :init (cmake-mode))
-
-(setq org-latex-compiler "lualatex")
-(setq org-startup-with-latex-preview t)
-(with-eval-after-load 'org (global-org-modern-mode))
-(setq org-modern-hide-stars t
-      org-hide-emphasis-markers t
-      org-modern-block-fringe t
-      org-modern-label-border 0.3
-      org-modern-list '((?- . "•") (?+ . "➤") (?' . "◦"))
-      org-modern-table-vertical 1
-      org-modern-table-horizontal 0.2)
-
+(use-package cmake-mode
+  :ensure
+  :init (cmake-mode))
 
 (require 'ivy-config)
-(require 'treemacs-config)
+;; (require 'treemacs-config)
+(require 'format-config)
+
+(use-package undo-tree
+  :ensure t
+  :init (global-undo-tree-mode))
+(setq max-specpdl-size 200)
+
+(require 'dired-sidebar)
+(require 'vscode-icon)
+(setq dired-sidebar-subtree-line-prefix "  ")  ;; 子目录的缩进样式
+(setq dired-sidebar-use-custom-font t)        ;; 使用不同字体
+(setq dired-sidebar-theme 'vscode)              ;; 主题，可以是 'ascii, 'nerd, 'vscode
+(defun my-dired-sidebar-setup ()
+  "自定义 `dired-sidebar` 的显示行为。"
+  (interactive)
+  (dired-sidebar-toggle-sidebar)
+  (unless (window-dedicated-p (selected-window))
+    (set-window-dedicated-p (selected-window) t)))
+(global-set-key (kbd "C-x D") 'my-dired-sidebar-setup)
+
+
+(setq inferior-lisp-program "sbcl")
+(use-package sly
+  :ensure t
+  :init (setq inferior-lisp-program "sbcl"))
+
+(add-hook 'rust-mode-hook 'eglot-ensure)
+(setq-default eglot-workspace-configuration
+              '((:rust-analyzer . (:cargo (:allFeatures t)
+                                          :procMacro (:enable t)))))
 
 (provide 'extensions-config)
