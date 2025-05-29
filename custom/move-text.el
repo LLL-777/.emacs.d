@@ -41,8 +41,8 @@
    (move-text-internal (- arg)))
 (global-set-key (kbd "C-s-n") #'move-text-down)
 (global-set-key (kbd "C-s-p") #'move-text-up)
-;; //~
 
+;; //~
 
 
 ;; (defun move-text-internal (arg)

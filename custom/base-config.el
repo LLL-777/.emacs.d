@@ -35,7 +35,7 @@
   (setq comint-move-point-for-output t))
 (add-hook 'shell-mode-hook #'my-clean-shell-mode)
 
-
+(setq project-vc-extra-root-markers '(".project"))
 
 (cond
  ((eq system-type 'darwin)

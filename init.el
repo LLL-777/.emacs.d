@@ -12,7 +12,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(gptel sly undo-tree vscode-icon dired-icon dired-sidebar julia-repl treemacs-nerd-icons treemacs ace-window magit eglot lsp-ivy vterm projector treemacs-projectile ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode))
+   '(eldoc-box toml-mode cargo nerd-icons exec-path-from-shell julia-mode cmake-mode ivy-config gptel sly undo-tree vscode-icon dired-icon dired-sidebar julia-repl ace-window magit eglot lsp-ivy vterm projector ivy-hydra use-package-hydra company-box auctex clang-format+ dap-mode which-key rust-mode counsel ivy command-log-mode company use-package solarized-theme nyan-mode))
  '(sql-postgres-login-params
    '((user :default "default")
      server
@@ -31,4 +31,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(flymake-error ((t (:underline (:style wave :color "Red1")))))
+ '(flymake-note ((t (:underline (:style wave :color "Green3")))))
+ '(flymake-warning ((t (:underline (:style wave :color "Orange"))))))

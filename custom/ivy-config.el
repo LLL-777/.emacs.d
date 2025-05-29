@@ -10,6 +10,9 @@
 (setq ivy-use-virtual-buffers t)
 (setq ivy-count-format "(%d/%d) ")
 
+(setq ivy-extra-directories nil) ;; 不显示 `../` 和 `./`
+(setq ivy-ignore-buffers '("\\` " "\\.elc\\'" "\\.git\\'" "\\`\\..+"))
+(setq counsel-find-file-ignore-regexp "^\\.")
 
 
 (global-set-key (kbd "C-s") 'swiper-isearch)

@@ -1,2 +1,2 @@
-# .emacs.d
-my test Emacs config
+#### A simple Emacs configuration
+- Supports C / C++, Rust, CommonLisp and Julia.
