@@ -49,6 +49,7 @@
 ;;   (setq company-box-scrollbar nil)
 ;;   (add-hook 'term-mode-hook (lambda () (company-box-mode -1))))
 
+(defalias 'shell 'vterm)
 
 (use-package eldoc-box
   :after eglot
