@@ -49,11 +49,15 @@
 ;;   (setq company-box-scrollbar nil)
 ;;   (add-hook 'term-mode-hook (lambda () (company-box-mode -1))))
 
-(defalias 'shell 'vterm)
+(use-package vterm
+  :ensure t
+  :config
+  (defalias 'shell 'vterm))
 
 (use-package eldoc-box
   :after eglot
   :hook (eglot-managed-mode . eldoc-box-hover-mode)
+  :bind ("s-F" . eglot-format-buffer)
   :config
   (setq eldoc-box-max-pixel-width 600)
   ;; (setq eldoc-box-max-pixel-height 400)
@@ -95,6 +99,17 @@
   :load-path custom-packate-path)
 
 (use-package dired-config
+  :load-path custom-packate-path)
+
+;; (setq debug-on-error t)
+;; (use-package gptel
+;;   :ensure t
+;;   :custom
+;;   (gptel-api-key "")
+;;   (gptel-model "gpt-4o")
+;;   :bind (("C-c q" . gptel-send))
+;; )
+(use-package copilot-config
   :load-path custom-packate-path)
 
 (provide 'extensions-config)

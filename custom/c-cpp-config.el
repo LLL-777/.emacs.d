@@ -9,8 +9,8 @@
   :ensure t
   :init (cmake-mode))
 
-(use-package clang-format
-  :ensure t
-  :bind (("s-F" . clang-format-region)))
+;; (use-package clang-format
+;;   :ensure t
+;;   :bind (("s-F" . clang-format-region)))
 
 (provide 'c-cpp-config)

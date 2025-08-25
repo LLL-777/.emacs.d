@@ -5,8 +5,14 @@
 ;; (getenv "PATH")(setenv "PATH"(concat "/Library/TeX/texbin"
 ;;                                      ":"(getenv "PATH")))
 
-;; (when (memq window-system '(mac ns x))
-;;   (exec-path-from-shell-initialize))
+(when (memq window-system '(mac ns x))
+  (use-package exec-path-from-shell
+  :if (display-graphic-p)
+  :ensure t
+  :config
+  (exec-path-from-shell-initialize)
+  ;; 明确加载哪些变量
+  (exec-path-from-shell-copy-envs '("http_proxy" "https_proxy" "all_proxy"))))
 
 ;; Basic Configure
 ;; (defalias 'yes-or-no-p 'y-or-n-p)
