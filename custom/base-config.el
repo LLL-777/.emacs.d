@@ -28,10 +28,14 @@
 (column-number-mode 1)
 (electric-pair-mode 1)
 
-;; (if(not (eq system-type 'darwin))
-;;     (menu-bar-mode -1)
-;; (add-to-list 'default-frame-alist
-;; 	     '(font . "DejaVu Sans Mono-16")))
+(if(not (eq system-type 'darwin))
+     (menu-bar-mode -1)
+ (add-to-list 'default-frame-alist
+ 	     '(font . "DejaVu Sans Mono-22")))
+
+;; (fido-mode 1)
+;; 或者更强的版本
+;; (fido-vertical-mode 1)
 
 (defun my-clean-shell-mode ()
   "优化 shell 模式体验：关闭回显、设置编码等。"

@@ -49,10 +49,10 @@
 ;;   (setq company-box-scrollbar nil)
 ;;   (add-hook 'term-mode-hook (lambda () (company-box-mode -1))))
 
-(use-package vterm
-  :ensure t
-  :config
-  (defalias 'shell 'vterm))
+;; (use-package vterm
+;;   :ensure t
+;;   :config
+;;   (defalias 'shell 'vterm))
 
 (use-package eldoc-box
   :after eglot
@@ -83,7 +83,9 @@
   :init (global-undo-tree-mode))
 (setq max-specpdl-size 200)
 
-(use-package ivy-config
+;; (use-package ivy-config
+;;   :load-path custom-packate-path)
+(use-package vertico-config
   :load-path custom-packate-path)
 
 (use-package c-cpp-config
@@ -95,8 +97,8 @@
 (use-package common-lisp-config
   :load-path custom-packate-path)
 
-(use-package julia-config
-  :load-path custom-packate-path)
+;; (use-package julia-config
+;;   :load-path custom-packate-path)
 
 (use-package dired-config
   :load-path custom-packate-path)
