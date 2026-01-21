@@ -103,11 +103,11 @@
   (load-theme 'solarized-dark t))
 
 ;; nyancat
-(use-package nyan-mode
-  :ensure
-  :init (nyan-mode)
-  :config
-  (nyan-start-animation)
-  (nyan-toggle-wavy-trail))
+;; (use-package nyan-mode
+  ;; :ensure
+  ;; :init (nyan-mode)
+  ;; :config
+  ;; (nyan-start-animation)
+  ;; (nyan-toggle-wavy-trail))
 
 (provide 'base-config)

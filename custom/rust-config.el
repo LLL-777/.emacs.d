@@ -3,6 +3,7 @@
 
 ;;rust-config
 
+;; (require 'rust-mode)
 (add-hook 'rust-mode-hook 'eglot-ensure)
 (setq-default eglot-workspace-configuration
               '((:rust-analyzer . (:cargo (:allFeatures t)

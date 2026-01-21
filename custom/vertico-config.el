@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; Enable Vertico.
 (use-package vertico
   :ensure t
@@ -9,26 +11,26 @@
   :init
   (vertico-mode))
 
-;; ;; Persist history over Emacs restarts. Vertico sorts by history position.
-;; (use-package savehist
-;;   :init
-;;   (savehist-mode))
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
 
-;; ;; Emacs minibuffer configurations.
-;; (use-package emacs
-;;   :custom
-;;   ;; Enable context menu. `vertico-multiform-mode' adds a menu in the minibuffer
-;;   ;; to switch display modes.
-;;   (context-menu-mode t)
-;;   ;; Support opening new minibuffers from inside existing minibuffers.
-;;   (enable-recursive-minibuffers t)
-;;   ;; Hide commands in M-x which do not work in the current mode.  Vertico
-;;   ;; commands are hidden in normal buffers. This setting is useful beyond
-;;   ;; Vertico.
-;;   (read-extended-command-predicate #'command-completion-default-include-p)
-;;   ;; Do not allow the cursor in the minibuffer prompt
-;;   (minibuffer-prompt-properties
-;;    '(read-only t cursor-intangible t face minibuffer-prompt)))
+;; Emacs minibuffer configurations.
+(use-package emacs
+  :custom
+  ;; Enable context menu. `vertico-multiform-mode' adds a menu in the minibuffer
+  ;; to switch display modes.
+  (context-menu-mode t)
+  ;; Support opening new minibuffers from inside existing minibuffers.
+  (enable-recursive-minibuffers t)
+  ;; Hide commands in M-x which do not work in the current mode.  Vertico
+  ;; commands are hidden in normal buffers. This setting is useful beyond
+  ;; Vertico.
+  (read-extended-command-predicate #'command-completion-default-include-p)
+  ;; Do not allow the cursor in the minibuffer prompt
+  (minibuffer-prompt-properties
+   '(read-only t cursor-intangible t face minibuffer-prompt)))
 
 
 ;; Orderless: 模糊匹配风格

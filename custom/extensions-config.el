@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
-(setq package-enable-at-startup nil)
-(setq package-quickstart t)
+;; (setq package-enable-at-startup nil)
+;; (setq package-quickstart t)
 (setq custom-packate-path "~/.emacs.d/custom/")
 (eval-when-compile
   (require 'use-package))
@@ -41,13 +41,13 @@
   ;; 根据选择的频率进行排序，读者如果不喜欢可以去掉
   (setq company-transformers '(company-sort-by-occurrence)))
 
-;; (use-package company-box
-;;   :ensure t
-;;   ;; :if window-system
-;;   :hook (company-mode . company-box-mode)
-;;   :config
-;;   (setq company-box-scrollbar nil)
-;;   (add-hook 'term-mode-hook (lambda () (company-box-mode -1))))
+(use-package company-box
+  :ensure t
+  ;; :if window-system
+  :hook (company-mode . company-box-mode)
+  :config
+  (setq company-box-scrollbar nil)
+  (add-hook 'term-mode-hook (lambda () (company-box-mode -1))))
 
 ;; (use-package vterm
 ;;   :ensure t
@@ -78,10 +78,10 @@
 (global-set-key (kbd "M-p") 'flymake-goto-prev-error)
 (global-set-key (kbd "M-n") 'flymake-goto-next-error)
 
-(use-package undo-tree
-  :ensure t
-  :init (global-undo-tree-mode))
-(setq max-specpdl-size 200)
+;; (use-package undo-tree
+;;   :ensure t
+;;   :init (global-undo-tree-mode))
+;; (setq max-specpdl-size 200)
 
 ;; (use-package ivy-config
 ;;   :load-path custom-packate-path)
@@ -97,8 +97,8 @@
 (use-package common-lisp-config
   :load-path custom-packate-path)
 
-;; (use-package julia-config
-;;   :load-path custom-packate-path)
+(use-package julia-config
+  :load-path custom-packate-path)
 
 (use-package dired-config
   :load-path custom-packate-path)
@@ -111,6 +111,8 @@
 ;;   (gptel-model "gpt-4o")
 ;;   :bind (("C-c q" . gptel-send))
 ;; )
+
+
 (use-package copilot-config
   :load-path custom-packate-path)
 
