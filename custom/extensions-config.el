@@ -85,6 +85,10 @@
 
 ;; (use-package ivy-config
 ;;   :load-path custom-packate-path)
+
+(use-package eat
+  :ensure t)
+
 (use-package vertico-config
   :load-path custom-packate-path)
 
@@ -103,6 +107,12 @@
 (use-package dired-config
   :load-path custom-packate-path)
 
+(use-package org-mode-config
+  :load-path custom-packate-path)
+
+(use-package claude-code-config
+  :load-path custom-packate-path)
+
 ;; (setq debug-on-error t)
 ;; (use-package gptel
 ;;   :ensure t
@@ -113,7 +123,7 @@
 ;; )
 
 
-(use-package copilot-config
-  :load-path custom-packate-path)
+;; (use-package copilot-config
+;;   :load-path custom-packate-path)
 
 (provide 'extensions-config)

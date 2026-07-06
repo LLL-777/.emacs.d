@@ -1,7 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
 
-
 (add-to-list 'load-path "~/.emacs.d/custom")
 
 (require 'base-config)
@@ -12,11 +11,13 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(ace-window aggressive-indent cmake-mode company-box copilot
-		dired-sidebar eldoc-box embark-consult
+   '(ace-window aggressive-indent claude-code-ide cmake-mode company-box
+		dired-sidebar eat eldoc-box embark-consult
 		exec-path-from-shell julia-mode julia-repl
-		nerd-icons-dired nyan-mode orderless sly
-		solarized-theme undo-tree verilog-mode vertico))
+		nerd-icons-dired orderless sly solarized-theme vertico))
+ '(package-vc-selected-packages
+   '((claude-code-ide :url
+		      "https://github.com/manzaltu/claude-code-ide.el")))
  '(sql-postgres-login-params
    '((user :default "default") server
      (database :default "default" :completion
@@ -41,3 +42,4 @@
  '(flymake-error ((t (:underline (:style wave :color "Red1")))))
  '(flymake-note ((t (:underline (:style wave :color "Green3")))))
  '(flymake-warning ((t (:underline (:style wave :color "Orange"))))))
+(put 'upcase-region 'disabled nil)

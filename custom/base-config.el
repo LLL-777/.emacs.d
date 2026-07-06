@@ -111,3 +111,13 @@
   ;; (nyan-toggle-wavy-trail))
 
 (provide 'base-config)
+(require 'epa-file)
+(epa-file-enable)
+(setq epa-pinentry-mode 'loopback)
+(setq epa-file-cache-passphrase-for-symmetric-encryption t)
+(setq epa-file-select-keys nil)
+(setq org-startup-indented t)
+(setq org-hide-emphasis-markers t)
+(setq org-startup-folded 'overview)
+(setq epa-armor nil)
+(require 'org-gpg-inline-image)

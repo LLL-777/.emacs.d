@@ -4,12 +4,12 @@
   :defer t
   :hook (prog-mode . copilot-mode)
   :config
-   (define-key copilot-completion-map (kbd "s-<return>") #'copilot-accept-completion)
-   (define-key copilot-completion-map (kbd "s-<right>")
+   (define-key copilot-completion-map (kbd "S-<return>") #'copilot-accept-completion)
+   (define-key copilot-completion-map (kbd "S-<right>")
     #'copilot-accept-completion-by-word)
-  (define-key copilot-completion-map (kbd "s-<down>")
+  (define-key copilot-completion-map (kbd "S-<down>")
     #'copilot-next-completion)
-  (define-key copilot-completion-map (kbd "s-<up>")
+  (define-key copilot-completion-map (kbd "S-<up>")
     #'copilot-previous-completion)
   ;; 不抢缩进
   (setq copilot-indent-warning-suppress t))
