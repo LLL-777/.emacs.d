@@ -1,24 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 (setq dired-omit-files
       (rx (or (seq bol (? ".") "#")
-	      ;;              (seq bol "." eol)
 	      (seq bol ".")
+	      (seq bol "." eol)
               (seq bol ".." eol)
               )))
-;; (use-package dired-sidebar
-;;   :ensure t
-;;   :commands (dired-sidebar-toggle-sidebar)
-;;   :init
-;;   (setq dired-sidebar-theme 'nerd)
-;;   :bind
-;;   ("C-c d" . dired-sidebar-toggle-sidebar)
-;;   :hook ('dired-sidebar-mode-hook 'dired-omit-mode)
-;;   :config
-;;   (use-package nerd-icons
-;;     :ensure t)
-;;   (use-package nerd-icons-dired
-;;   :ensure t
-;;   :hook (dired-mode . nerd-icons-dired-mode)))
 
 (use-package nerd-icons
   :ensure t)
@@ -27,12 +13,21 @@
   :ensure t
   :hook (dired-mode . nerd-icons-dired-mode))
 
-(use-package dired-sidebar
-  :ensure t
-  :bind ("C-c d" . dired-sidebar-toggle-sidebar)
-  :init
-  (setq dired-sidebar-theme 'nerd)
-;;  :hook (dired-sidebar-mode . dired-omit-mode)
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :custom
+  (dired-listing-switches "-alh --group-directories-first")
+  (dired-recursive-copies 'always)
+  (dired-recursive-deletes 'top)
+  (delete-by-moving-to-trash t)
+  (dired-dwim-target t)
+  :bind
+  (:map dired-mode-map
+        ("RET" . dired-find-alternate-file)
+        ("^"   . (lambda ()
+                   (interactive)
+                   (find-alternate-file ".."))))
   :config (add-hook 'dired-mode-hook #'dired-omit-mode))
 
 (provide 'dired-config)

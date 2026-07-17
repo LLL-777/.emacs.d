@@ -1,4 +1,6 @@
-;; -*- lexical-binding: t; -*-
+; -*- lexical-binding: t; -*-
+
+(setq inhibit-startup-screen t)
 (set-language-environment "UTF-8")
 ;; DEBUG switch t or nil
 ;; (setq debug-on-error nil)
@@ -102,13 +104,6 @@
   (exec-path-from-shell-initialize)
   (load-theme 'solarized-dark t))
 
-;; nyancat
-;; (use-package nyan-mode
-  ;; :ensure
-  ;; :init (nyan-mode)
-  ;; :config
-  ;; (nyan-start-animation)
-  ;; (nyan-toggle-wavy-trail))
 
 (provide 'base-config)
 ;;

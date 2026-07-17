@@ -5,11 +5,32 @@
 
 (require 'base-config)
 (require 'extensions-config)
+;; (require 'nyan-mode)
+;; nyancat
+(use-package nyan-mode
+  :ensure
+  :init (nyan-mode)
+  :config
+  (nyan-start-animation)
+(nyan-toggle-wavy-trail))
+
+;; (setq mode-line-format
+;;       (list
+;;        '(:eval (list (nyan-create)))
+;;        ))
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(ace-window aggressive-indent cmake-mode codex-ide company-box
+		dired-sidebar eldoc-box embark-consult
+		exec-path-from-shell julia-mode julia-repl
+		nerd-icons-dired nyan-mode orderless sly
+		solarized-theme vertico which-key))
  '(package-vc-selected-packages
    '((codex-ide :url "https://github.com/dgillis/emacs-codex-ide")))
  '(sql-postgres-login-params
@@ -37,3 +58,4 @@
  '(flymake-note ((t (:underline (:style wave :color "Green3")))))
  '(flymake-warning ((t (:underline (:style wave :color "Orange"))))))
 (put 'upcase-region 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
