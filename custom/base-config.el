@@ -111,6 +111,7 @@
   ;; (nyan-toggle-wavy-trail))
 
 (provide 'base-config)
+;;
 (require 'epa-file)
 (epa-file-enable)
 (setq epa-pinentry-mode 'loopback)

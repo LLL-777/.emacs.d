@@ -1,7 +1,8 @@
 ;; -*- lexical-binding: t; -*-
 (setq dired-omit-files
       (rx (or (seq bol (? ".") "#")
-              (seq bol "." eol)
+	      ;;              (seq bol "." eol)
+	      (seq bol ".")
               (seq bol ".." eol)
               )))
 ;; (use-package dired-sidebar
@@ -31,6 +32,7 @@
   :bind ("C-c d" . dired-sidebar-toggle-sidebar)
   :init
   (setq dired-sidebar-theme 'nerd)
-  :hook (dired-sidebar-mode . dired-omit-mode))
+;;  :hook (dired-sidebar-mode . dired-omit-mode)
+  :config (add-hook 'dired-mode-hook #'dired-omit-mode))
 
 (provide 'dired-config)
