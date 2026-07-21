@@ -29,5 +29,5 @@
                    (interactive)
                    (find-alternate-file ".."))))
   :config (add-hook 'dired-mode-hook #'dired-omit-mode))
-
+  
 (provide 'dired-config)

@@ -7,6 +7,7 @@
   (require 'use-package))
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/") t)
+(add-to-list 'load-path custom-packate-path)
 
 (require 'use-package)
 (unless (package-installed-p 'use-package)
@@ -86,41 +87,16 @@
 ;; (use-package ivy-config
 ;;   :load-path custom-packate-path)
 
-(use-package vertico-config
-  :load-path custom-packate-path)
-
-(use-package c-cpp-config
-  :load-path custom-packate-path)
-
-(use-package rust-config
-  :load-path custom-packate-path)
-
-(use-package common-lisp-config
-  :load-path custom-packate-path)
-
-(use-package julia-config
-  :load-path custom-packate-path)
-
-(use-package dired-config
-  :load-path custom-packate-path)
-
-(use-package org-mode-config
-  :load-path custom-packate-path)
-
-(use-package codex-config
-     :load-path custom-packate-path)
-
-;; (setq debug-on-error t)
-;; (use-package gptel
-;;   :ensure t
-;;   :custom
-;;   (gptel-api-key "")
-;;   (gptel-model "gpt-4o")
-;;   :bind (("C-c q" . gptel-send))
-;; )
-
-
-;; (use-package copilot-config
-;;   :load-path custom-packate-path)
+(mapc #'require
+ '(vertico-config
+ c-cpp-config
+ rust-config
+ common-lisp-config
+ julia-config
+ dired-config
+ org-mode-config
+ codex-config
+ magit-config
+ copilot-config))
 
 (provide 'extensions-config)
