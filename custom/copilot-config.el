@@ -4,8 +4,8 @@
   :defer t
   ;;  :hook (prog-mode . copilot-mode)
   :bind (:map copilot-completion-map
-              ("S-<RET>" . copilot-accept-completion)
-              ("C-<RET>" . copilot-accept-completion-by-word)
+              ("C-<return>" . copilot-accept-completion)
+              ("C-<tab>" . copilot-accept-completion-by-word)
               ("C-n" . copilot-next-completion)
               ("C-p" . copilot-previous-completion))
   :config

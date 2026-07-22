@@ -55,10 +55,13 @@
 ;;   :config
 ;;   (defalias 'shell 'vterm))
 
+
+(require 'eglot)
 (use-package eldoc-box
+  :ensure t
   :after eglot
   :hook (eglot-managed-mode . eldoc-box-hover-mode)
-  :bind ("s-F" . eglot-format-buffer)
+  :bind ("C-c f" . eglot-format-buffer)
   :config
   (setq eldoc-box-max-pixel-width 600)
   ;; (setq eldoc-box-max-pixel-height 400)
@@ -87,16 +90,23 @@
 ;; (use-package ivy-config
 ;;   :load-path custom-packate-path)
 
+(use-package eat
+  :ensure t
+  :commands (eat eat-other-window)
+  :bind (("C-c t" . eat)))
+;; (defalias 'shell #'eat)
+(fset 'shell #'eat)
+
 (mapc #'require
  '(vertico-config
- c-cpp-config
- rust-config
- common-lisp-config
- julia-config
- dired-config
- org-mode-config
- codex-config
- magit-config
- copilot-config))
+  c-cpp-config
+  rust-config
+  common-lisp-config
+  julia-config
+  dired-config
+  org-mode-config
+  codex-config
+  magit-config
+  copilot-config))
 
 (provide 'extensions-config)

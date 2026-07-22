@@ -3,11 +3,8 @@
 
 (add-to-list 'load-path "~/.emacs.d/custom")
 
-(use-package autorevert
-  :ensure nil
-  :config
-  (global-auto-revert-mode 1)
-  (setq auto-revert-verbose nil))
+(setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode 1)
 
 (require 'base-config)
 (require 'extensions-config)

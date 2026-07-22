@@ -1,17 +1,29 @@
 ;; -*- lexical-binding: t; -*-
 
-
-;;rust-config
+(use-package rust-mode
+  :ensure t
+  :defer t
+  :mode "\\.rs\\'"
+  :hook
+  (rust-mode . eglot-ensure)
+  :config
+  (setq rust-format-on-save t)
+  (setq-default eglot-workspace-configuration
+                '((:rust-analyzer
+                   . (:cargo
+                      (:allFeatures t)
+                      :procMacro
+                      (:enable t))))))
 
 ;; (require 'rust-mode)
-(add-hook 'rust-mode-hook 'eglot-ensure)
-(setq-default eglot-workspace-configuration
-              '((:rust-analyzer . (:cargo (:allFeatures t)
-                                          :procMacro (:enable t)))))
+;; (add-hook 'rust-mode-hook #'eglot-ensure)
+;; (setq-default eglot-workspace-configuration
+;;               '((:rust-analyzer . (:cargo (:allFeatures t)
+;;                                           :procMacro (:enable t)))))
 
-(add-hook 'rust-mode-hook
-          (lambda ()
-            (add-hook 'before-save-hook #'rust-format-buffer nil t)))
+;; (add-hook 'rust-mode-hook
+;;           (lambda ()
+;;             (add-hook 'before-save-hook #'rust-format-buffer nil t)))
 
 ;; (with-eval-after-load 'rust-mode
 ;;   (define-key rust-mode-map (kbd "C-c C-c b") 'cargo-process-build)

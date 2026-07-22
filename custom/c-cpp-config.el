@@ -1,12 +1,14 @@
-(require 'eglot)
+;; -*- lexical-binding: t; -*-
+
 (add-hook 'c-mode-hook #'eglot-ensure)
 (add-hook 'c++-mode-hook #'eglot-ensure)
 
-(add-to-list 'eglot-server-programs
-	     '((c++-mode c-mode) . ("clangd")))
-
 (use-package cmake-mode
-  :ensure t)
+  :ensure t
+  :mode
+  ("CMakeLists\\.txt\\'"
+   "\\.cmake\\'")
+  :hook (cmake-mode . eglot-ensure))
 
 ;; (use-package clang-format
 ;;   :ensure t
