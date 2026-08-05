@@ -5,18 +5,29 @@
   :defer t
   :mode "\\.rs\\'"
   :hook
-  (rust-mode . eglot-ensure)
+  ((rust-mode . eglot-ensure)
+   (rust-mode . cargo-minor-mode)
+   (rust-mode
+    . (lambda ()
+        (add-hook 'before-save-hook
+                  #'eglot-format-buffer
+                  nil t))))
   :config
-  (setq rust-format-on-save t)
   (setq-default eglot-workspace-configuration
                 '((:rust-analyzer
                    . (:cargo
                       (:allFeatures t)
                       :procMacro
-                      (:enable t))))))
+                      (:enable t)
+		      :check
+		      (:command "clippy"))))))
 
-;; (require 'rust-mode)
-;; (add-hook 'rust-mode-hook #'eglot-ensure)
+(use-package cargo
+  :ensure t
+  :after rust-mode
+  :hook (rust-mode . cargo-minor-mode))
+
+
 ;; (setq-default eglot-workspace-configuration
 ;;               '((:rust-analyzer . (:cargo (:allFeatures t)
 ;;                                           :procMacro (:enable t)))))

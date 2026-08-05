@@ -55,25 +55,66 @@
 ;;   :config
 ;;   (defalias 'shell 'vterm))
 
+(use-package dirvish
+  :ensure t
+  :init
+  (dirvish-override-dired-mode)
+
+  :custom
+  (dirvish-attributes
+   '(vc-state
+     ;; nerd-icons
+     collapse
+     subtree-state
+     file-time
+     file-size))
+
+  :config
+  (dirvish-peek-mode)
+
+  ;; F8 打开/关闭侧边栏
+  (global-set-key (kbd "<f8>") #'dirvish-side))
+
 
 (require 'eglot)
-(use-package eldoc-box
+
+(use-package eglot
   :ensure t
-  :after eglot
-  :hook (eglot-managed-mode . eldoc-box-hover-mode)
-  :bind ("C-c f" . eglot-format-buffer)
+  :hook
+  (eglot-managed-mode . eglot-inlay-hints-mode)
   :config
-  (setq eldoc-box-max-pixel-width 600)
-  ;; (setq eldoc-box-max-pixel-height 400)
-   ;;; 自动消失更快
-  (setq eldoc-box-cleanup-interval 0.2)
-   ;;; 只显示多行信息时才浮窗
-  (setq eldoc-box-only-multi-line t)
+  (setq eglot-events-buffer-size 0)
+  (setq-default
+   eglot-workspace-configuration
+   '((:rust-analyzer
+      .
+      (:cargo
+       (:allFeatures t)
+       :procMacro
+       (:enable t)
+       :check
+       (:command "clippy"))))))
+
+
+(use-package eldoc-box
+  :after eglot
+  :hook
+  (eglot-managed-mode . eldoc-box-hover-at-point-mode)
+  :bind
+  ("C-c f" . eglot-format-buffer)
+  :custom
+  (eldoc-box-max-pixel-width 650)
+  (eldoc-box-max-pixel-height 400)
+  (eldoc-box-offset '(18 18 10))
+  (eldoc-box-cleanup-interval 0.2)
+  (eldoc-box-only-multi-line t)
+  :config
   (custom-set-faces
- '(eldoc-box-body
-   ((t (:background "#073642" :foreground "#eee8d5"))))
- '(eldoc-box-border
-   ((t (:background "#586e75"))))))
+   '(eldoc-box-body
+     ((t (:background "#073642"
+          :foreground "#eee8d5"))))
+   '(eldoc-box-border
+     ((t (:background "#93a1a1"))))))
 
 (custom-set-faces
  '(flymake-error ((t (:underline (:style wave :color "Red1")))))
@@ -82,20 +123,18 @@
 (global-set-key (kbd "M-p") 'flymake-goto-prev-error)
 (global-set-key (kbd "M-n") 'flymake-goto-next-error)
 
-;; (use-package undo-tree
-;;   :ensure t
-;;   :init (global-undo-tree-mode))
-;; (setq max-specpdl-size 200)
+(use-package undo-tree
+  :ensure t
+  :init (global-undo-tree-mode)
+  :config
+  (setq max-specpdl-size 100))
 
-;; (use-package ivy-config
-;;   :load-path custom-packate-path)
+
 
 (use-package eat
   :ensure t
   :commands (eat eat-other-window)
   :bind (("C-c t" . eat)))
-;; (defalias 'shell #'eat)
-(fset 'shell #'eat)
 
 (mapc #'require
  '(vertico-config

@@ -31,9 +31,13 @@
 (electric-pair-mode 1)
 
 (if(not (eq system-type 'darwin))
-     (menu-bar-mode -1)
- (add-to-list 'default-frame-alist
- 	     '(font . "DejaVu Sans Mono-22")))
+     (menu-bar-mode -1))
+(set-face-attribute 'default nil
+                    :family "JetBrains Mono"
+                    :height 140)
+
+(set-face-attribute 'font-lock-keyword-face nil
+                    :slant 'italic)
 
 ;; (fido-mode 1)
 ;; 或者更强的版本

@@ -17,7 +17,7 @@
   :ensure nil
   :commands (dired dired-jump)
   :custom
-  (dired-listing-switches "-alh --group-directories-first")
+  (dired-listing-switches "-alh")
   (dired-recursive-copies 'always)
   (dired-recursive-deletes 'top)
   (delete-by-moving-to-trash t)

@@ -15,7 +15,14 @@
   (julia-repl-set-terminal-backend 'eat))
 
 (add-to-list 'eglot-server-programs
-             '(julia-mode . ("julia" "-e using LanguageServer; using SymbolServer; runserver()")))
+              '(julia-mode . ("julia"
+ 			     "--startup-file=no"
+ 			     "--history-file=no"
+ 			     "-e"
+ 			     "using LanguageServer; using SymbolServer;
+                              server = LanguageServer.LanguageServerInstance(stdin, stdout);
+                              server.runlinter = true; 
+                              LanguageServer.run(server)")))
 
 (add-hook 'julia-mode-hook
           (lambda ()
