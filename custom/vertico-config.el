@@ -45,7 +45,7 @@
   :ensure t
   :init
   :bind (("C-s" . consult-line)            ;; 类似 swiper
-         ("C-c r" . consult-ripgrep)       ;; 全局搜索 (替代 counsel-rg)
+         ("C-c s" . consult-ripgrep)       ;; 全局搜索 (替代 counsel-rg)
          ("C-c g" . consult-git-grep)      ;; Git 内搜索
          ("C-x b" . consult-buffer)        ;; 更强的 buffer 切换
          ("M-y" . consult-yank-pop)))        ;; 替代 counsel-yank-pop

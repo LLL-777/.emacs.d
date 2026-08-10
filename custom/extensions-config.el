@@ -15,7 +15,6 @@
   (package-install 'use-package))
 (setq use-package-always-ensure t)
 
-;; (global-set-key (kbd "C-x o") 'ace-window)
 (use-package ace-window
   :ensure t
   :bind ("C-x o" . ace-window))
@@ -59,20 +58,29 @@
   :ensure t
   :init
   (dirvish-override-dired-mode)
-
   :custom
   (dirvish-attributes
    '(vc-state
      ;; nerd-icons
      collapse
-     subtree-state
-     file-time
-     file-size))
-
+     subtree-state))
+     ;; file-time
+     ;; file-size))
   :config
   (dirvish-peek-mode)
-
-  ;; F8 打开/关闭侧边栏
+  (add-hook 'dired-mode-hook
+            (lambda ()
+	      (company-mode -1)
+               (setq-local header-line-format
+                           '(:eval
+                             (let ((dir default-directory))
+                               (if-let ((project (project-current)))
+                                   (file-relative-name
+                                    dir
+                                    (project-root project))
+				 (abbreviate-file-name dir)))))
+	       (local-set-key (kbd "<TAB>")
+			      #'dirvish-subtree-toggle)))
   (global-set-key (kbd "<f8>") #'dirvish-side))
 
 
@@ -98,9 +106,8 @@
 
 (use-package eldoc-box
   :after eglot
-  :hook
-  (eglot-managed-mode . eldoc-box-hover-at-point-mode)
   :bind
+  ("C-h ." . eldoc-box-help-at-point)
   ("C-c f" . eglot-format-buffer)
   :custom
   (eldoc-box-max-pixel-width 650)
@@ -120,8 +127,11 @@
  '(flymake-error ((t (:underline (:style wave :color "Red1")))))
  '(flymake-warning ((t (:underline (:style wave :color "Orange")))))
  '(flymake-note ((t (:underline (:style wave :color "Green3"))))))
+(setq flymake-show-diagnostics-at-end-of-line t)
+
 (global-set-key (kbd "M-p") 'flymake-goto-prev-error)
 (global-set-key (kbd "M-n") 'flymake-goto-next-error)
+(global-set-key (kbd "C-x p b") #'consult-project-buffer)
 
 (use-package undo-tree
   :ensure t
