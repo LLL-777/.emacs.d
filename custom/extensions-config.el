@@ -54,38 +54,7 @@
 ;;   :config
 ;;   (defalias 'shell 'vterm))
 
-(use-package dirvish
-  :ensure t
-  :init
-  (dirvish-override-dired-mode)
-  :custom
-  (dirvish-attributes
-   '(vc-state
-     ;; nerd-icons
-     collapse
-     subtree-state))
-     ;; file-time
-     ;; file-size))
-  :config
-  (dirvish-peek-mode)
-  (add-hook 'dired-mode-hook
-            (lambda ()
-	      (company-mode -1)
-               (setq-local header-line-format
-                           '(:eval
-                             (let ((dir default-directory))
-                               (if-let ((project (project-current)))
-                                   (file-relative-name
-                                    dir
-                                    (project-root project))
-				 (abbreviate-file-name dir)))))
-	       (local-set-key (kbd "<TAB>")
-			      #'dirvish-subtree-toggle)))
-  (global-set-key (kbd "<f8>") #'dirvish-side))
-
-
 (require 'eglot)
-
 (use-package eglot
   :ensure t
   :hook
@@ -152,10 +121,11 @@
   rust-config
   common-lisp-config
   julia-config
-  dired-config
+  ;; dired-config
   org-mode-config
   codex-config
   magit-config
-  copilot-config))
+  copilot-config
+  treemacs-config))
 
 (provide 'extensions-config)

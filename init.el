@@ -28,7 +28,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(codex-ide))
+ '(package-selected-packages nil)
  '(package-vc-selected-packages
    '((codex-ide :url "https://github.com/dgillis/emacs-codex-ide")))
  '(sql-postgres-login-params
@@ -55,5 +55,3 @@
  '(flymake-error ((t (:underline (:style wave :color "Red1")))))
  '(flymake-note ((t (:underline (:style wave :color "Green3")))))
  '(flymake-warning ((t (:underline (:style wave :color "Orange"))))))
-(put 'upcase-region 'disabled nil)
-(put 'dired-find-alternate-file 'disabled nil)
