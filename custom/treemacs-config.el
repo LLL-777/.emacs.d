@@ -1,3 +1,7 @@
+;; -*- lexical-binding: t; -*-
+
+(defvar winum-keymap)
+
 (use-package treemacs
   :ensure t
   :defer t
@@ -92,6 +96,7 @@
         ("C-x t M-t" . treemacs-find-tag)))
 
 (use-package treemacs-nerd-icons
+  :after treemacs
   :config
   (treemacs-nerd-icons-config))
 

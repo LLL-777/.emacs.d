@@ -1,10 +1,4 @@
 ;; -*- lexical-binding: t; -*-
-(setq dired-omit-files
-      (rx (or (seq bol (? ".") "#")
-	      (seq bol ".")
-	      (seq bol "." eol)
-              (seq bol ".." eol)
-              )))
 
 (use-package nerd-icons
   :ensure t)
@@ -28,6 +22,18 @@
         ("^"   . (lambda ()
                    (interactive)
                    (find-alternate-file ".."))))
-  :config (add-hook 'dired-mode-hook #'dired-omit-mode))
+  :config
+  (require 'dired-x))
+
+(use-package dired-x
+  :ensure nil
+  :after dired
+  :custom
+  (dired-omit-files
+   (rx (or (seq bol (? ".") "#")
+           (seq bol ".")
+           (seq bol "." eol)
+           (seq bol ".." eol))))
+  :hook (dired-mode . dired-omit-mode))
   
 (provide 'dired-config)

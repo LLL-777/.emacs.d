@@ -1,11 +1,10 @@
+;; -*- lexical-binding: t; -*-
 
-
-;; common-lisp-config
-
-(setq inferior-lisp-program "sbcl")
 (use-package sly
   :ensure t
-  :init (setq inferior-lisp-program "sbcl"))
+  :commands (sly sly-connect)
+  :init
+  (setq inferior-lisp-program "sbcl"))
 
 (use-package aggressive-indent
   :ensure t

@@ -1,11 +1,18 @@
-; -*- lexical-binding: t; -*-
+;; -*- lexical-binding: t; -*-
 
-(setq inhibit-startup-screen t)
+(setq inhibit-startup-screen t
+      auto-save-default nil
+      make-backup-files nil
+      dired-use-ls-dired nil
+      global-auto-revert-non-file-buffers t
+      auto-revert-verbose t
+      project-vc-extra-root-markers '(".project")
+      epa-pinentry-mode 'loopback
+      epa-file-cache-passphrase-for-symmetric-encryption t
+      epa-file-select-keys nil
+      epa-armor nil)
+
 (set-language-environment "UTF-8")
-;; DEBUG switch t or nil
-;; (setq debug-on-error nil)
-;; (getenv "PATH")(setenv "PATH"(concat "/Library/TeX/texbin"
-;;                                      ":"(getenv "PATH")))
 
 (when (memq window-system '(mac ns x))
   (use-package exec-path-from-shell
@@ -16,124 +23,86 @@
   ;; 明确加载哪些变量
   (exec-path-from-shell-copy-envs '("http_proxy" "https_proxy" "all_proxy"))))
 
-;; Basic Configure
-;; (defalias 'yes-or-no-p 'y-or-n-p)
-(setq auto-save-default nil
-      make-backup-files nil)
-(setq dired-use-ls-dired nil)
 
-(global-auto-revert-mode t)
-
-
+(global-auto-revert-mode 1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
-(global-hl-line-mode t)
+(global-hl-line-mode 1)
 (line-number-mode 1)
 (column-number-mode 1)
 (electric-pair-mode 1)
 
+(autoload 'pulse-momentary-highlight-one-line "pulse")
 
-```elisp
-(require 'pulse)
-
-(setq auto-revert-verbose t)
-
-(defun my-notify-after-revert ()
-  "明显提示当前 buffer 已从磁盘重新载入。"
+(defun my/notify-after-revert ()
+  "Visibly report that the current buffer was reloaded from disk."
   (pulse-momentary-highlight-one-line (point))
   (message "✓ 已同步磁盘文件：%s（%s）"
            (buffer-name)
            (format-time-string "%H:%M:%S")))
-(add-hook 'after-revert-hook #'my-notify-after-revert)
 
-(if(not (eq system-type 'darwin))
-     (menu-bar-mode -1))
+(add-hook 'after-revert-hook #'my/notify-after-revert)
+
+(unless (eq system-type 'darwin)
+  (menu-bar-mode -1))
+
 (set-face-attribute 'default nil
                     :family "JetBrains Mono"
                     :height 140)
+(set-face-attribute 'font-lock-keyword-face nil :slant 'italic)
 
-(set-face-attribute 'font-lock-keyword-face nil
-                    :slant 'italic)
+(defun my/clean-shell-mode ()
+  "Use predictable process echoing and scrolling in Shell buffers."
+  (setq-local comint-process-echoes t
+              comint-scroll-to-bottom-on-input t
+              comint-scroll-to-bottom-on-output t
+              comint-move-point-for-output t))
 
-;; (fido-mode 1)
-;; 或者更强的版本
-;; (fido-vertical-mode 1)
+(add-hook 'shell-mode-hook #'my/clean-shell-mode)
 
-(defun my-clean-shell-mode ()
-  "优化 shell 模式体验：关闭回显、设置编码等。"
-  (setq comint-process-echoes t)
-  (setq comint-scroll-to-bottom-on-input t)
-  (setq comint-scroll-to-bottom-on-output t)
-  (setq comint-move-point-for-output t))
-(add-hook 'shell-mode-hook #'my-clean-shell-mode)
+(pcase system-type
+  ('darwin
+   (add-hook 'window-setup-hook #'toggle-frame-maximized t)
+   (add-to-list 'default-frame-alist
+                '(font . "VictorMono Nerd Font-16"))
+   (setq mac-option-modifier 'meta
+         mac-command-modifier 'super
+         mac-control-modifier 'control))
+  ('berkeley-unix
+   (add-to-list 'default-frame-alist
+                '(font . "DejaVu Sans Mono-16")))
+  (_
+   (menu-bar-mode -1)
+   (add-to-list 'default-frame-alist
+                '(font . "DejaVu Sans Mono-10"))))
 
-(setq project-vc-extra-root-markers '(".project"))
-
-(cond
- ((eq system-type 'darwin)
- "初始化MacOS系统参数"
-    (add-hook 'window-setup-hook 'toggle-frame-maximized t)
-    (add-to-list 'default-frame-alist
-		 '(font . "VictorMono Nerd Font-16"))
-    (setq mac-option-modifier 'meta)
-    (setq mac-command-modifier 'super)
-    (setq mac-control-modifier 'control))
- ((eq system-type 'berkeley-unix)
-  "FreeBSD 系统的默认字体,字号为16"
-	     '(font . "DejaVu Sans Mono-16"))
- (t
-  "Linux 系统字体,并且默认不显示Menu Bar"
-    (menu-bar-mode -1)
-    (add-to-list 'default-frame-alist
-		 '(font . "DejaVu Sans Mono-10"))))
-
-;;(set-face-attribute 'default nil :height 130)
-
-;; (setq-default explicit-shell-file-name "/bin/zsh")
-;; (setq-default shell-file-name "/bin/zsh")
-
-;; M-g g
 (setq display-line-numbers-type 'relative)
-(global-display-line-numbers-mode t)
-(defun go-line-with-feedback ()
-  "Show line numbers temporarily, while prompting for the line number input"
-  (interactive)
-  (unwind-protect
-      (progn
-	(setq display-line-numbers-type 'absolute)
-	(display-line-numbers-mode 1)
-	(goto-line (read-number "Goto line: "))
-        (setq display-line-numbers-type 'relative)
-	(global-display-line-numbers-mode t))))
-(global-set-key [remap goto-line] 'go-line-with-feedback)
+(global-display-line-numbers-mode 1)
 
-;; autocompletion pair mode
+(defun go-line-with-feedback ()
+  "Read a line number while temporarily displaying absolute line numbers."
+  (interactive)
+  (let ((previous-type display-line-numbers-type))
+    (unwind-protect
+        (progn
+          (setq display-line-numbers-type 'absolute)
+          (display-line-numbers-mode 1)
+          (goto-char (point-min))
+          (forward-line (1- (read-number "Goto line: "))))
+      (setq display-line-numbers-type previous-type)
+      (global-display-line-numbers-mode 1))))
+
+(global-set-key [remap goto-line] #'go-line-with-feedback)
+
 (setq electric-pair-pairs
-	  '(
-		(?\" . ?\")
-		(?\[ . ?\])
-		(?\{ . ?\})
-		(?\< . ?\>)))
-;;//~
+      '((?\" . ?\")
+        (?\[ . ?\])
+        (?{ . ?})
+        (?< . ?>)))
 
 (require 'move-text)
 
-;; (fido-mode 1)
-
 (when (memq window-system '(mac ns x))
-  (exec-path-from-shell-initialize)
   (load-theme 'solarized-dark t))
 
-
 (provide 'base-config)
-;;
-(require 'epa-file)
-(epa-file-enable)
-(setq epa-pinentry-mode 'loopback)
-(setq epa-file-cache-passphrase-for-symmetric-encryption t)
-(setq epa-file-select-keys nil)
-(setq org-startup-indented t)
-(setq org-hide-emphasis-markers t)
-(setq org-startup-folded 'overview)
-(setq epa-armor nil)
-(require 'org-gpg-inline-image)

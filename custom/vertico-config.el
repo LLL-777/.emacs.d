@@ -40,16 +40,19 @@
         completion-category-defaults nil
         completion-category-overrides '((file (styles basic partial-completion)))))
 
-;; Consult: counsel 的替代命令
+;; Consult: incremental narrowing and live previews.
 (use-package consult
   :ensure t
   :init
-  :bind (("C-s" . consult-line)            ;; 类似 swiper
-         ("C-c s" . consult-ripgrep)       ;; 全局搜索 (替代 counsel-rg)
-         ("C-c g" . consult-git-grep)      ;; Git 内搜索
-         ("C-x b" . consult-buffer)        ;; 更强的 buffer 切换
-         ("M-y" . consult-yank-pop)))        ;; 替代 counsel-yank-pop
-         ;; ("M-x" . consult-mode-command)))           ;; 替代 counsel-M-x
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+  :bind (("C-s" . consult-line)
+         ("C-c s" . consult-ripgrep)
+         ("C-c G" . consult-git-grep)
+         ("C-x b" . consult-buffer)
+         ("M-y" . consult-yank-pop)
+         ([remap imenu] . consult-imenu)
+         ([remap recentf-open-files] . consult-recent-file)))
 
 ;; Embark: “右键菜单”功能
 (use-package embark
