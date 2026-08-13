@@ -23,12 +23,28 @@
 (setq dired-use-ls-dired nil)
 
 (global-auto-revert-mode t)
+
+
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (global-hl-line-mode t)
 (line-number-mode 1)
 (column-number-mode 1)
 (electric-pair-mode 1)
+
+
+```elisp
+(require 'pulse)
+
+(setq auto-revert-verbose t)
+
+(defun my-notify-after-revert ()
+  "明显提示当前 buffer 已从磁盘重新载入。"
+  (pulse-momentary-highlight-one-line (point))
+  (message "✓ 已同步磁盘文件：%s（%s）"
+           (buffer-name)
+           (format-time-string "%H:%M:%S")))
+(add-hook 'after-revert-hook #'my-notify-after-revert)
 
 (if(not (eq system-type 'darwin))
      (menu-bar-mode -1))
