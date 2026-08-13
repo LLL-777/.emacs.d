@@ -109,12 +109,6 @@
   (setq max-specpdl-size 100))
 
 
-
-(use-package eat
-  :ensure t
-  :commands (eat eat-other-window)
-  :bind (("C-c t" . eat)))
-
 (mapc #'require
  '(vertico-config
   c-cpp-config

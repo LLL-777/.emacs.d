@@ -12,7 +12,7 @@
 (use-package julia-repl
   :ensure t
   :config
-  (julia-repl-set-terminal-backend 'eat))
+  (julia-repl-set-terminal-backend 'mistty))
 
 (add-to-list 'eglot-server-programs
               '(julia-mode . ("julia"
