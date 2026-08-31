@@ -52,36 +52,6 @@
     (my/codex-assert-project-file-buffers-clean session))
   (apply original args))
 
-(defun my/codex-completed-turn-diff-text (session turn-id)
-  "Return SESSION's diff for TURN-ID, or nil when the turn has no diff."
-  (condition-case nil
-      (codex-ide-diff-data-combined-turn-diff-text session turn-id)
-    (user-error nil)))
-
-(defun my/codex-display-completed-turn-diff (session turn-id)
-  "Display SESSION's combined file diff for completed TURN-ID when present."
-  (when (and (codex-ide-session-p session)
-             (buffer-live-p (codex-ide-session-buffer session)))
-    (when-let* ((diff-text
-                 (my/codex-completed-turn-diff-text session turn-id))
-                ((not (string-empty-p diff-text))))
-      (codex-ide-diff-open-buffer
-       diff-text
-       (codex-ide-diff-combined-buffer-name-for-session
-        (codex-ide-session-buffer session))
-       (codex-ide-session-directory session)))))
-
-(defun my/codex-handle-session-event (event session payload)
-  "React to Codex EVENT for SESSION using event PAYLOAD."
-  (when (eq event 'turn-completed)
-    (when-let ((turn-id (plist-get payload :turn-id)))
-      ;; Defer window changes until Codex finishes processing the completion
-      ;; notification and restores its input prompt.
-      (run-at-time 0 nil
-                   #'my/codex-display-completed-turn-diff
-                   session
-                   turn-id))))
-
 (use-package codex-ide
   :vc (:url "https://github.com/dgillis/emacs-codex-ide" :rev :newest)
   :bind ("C-c c" . codex-ide-menu)
@@ -92,6 +62,7 @@
         codex-ide-diff-auto-display-policy 'never)
   (require 'codex-ide-diff-data)
   (require 'codex-ide-diff-view)
+  (require 'codex-edit-visibility)
   (unless (advice-member-p #'my/codex-guard-turn-start
                            'codex-ide--send-turn-start)
     (advice-add 'codex-ide--send-turn-start
@@ -107,7 +78,6 @@
     (advice-add 'codex-ide--queue-prompt
                 :around
                 #'my/codex-guard-running-prompt))
-  (add-hook 'codex-ide-session-event-hook
-            #'my/codex-handle-session-event))
+  (my/codex-edit-visibility-install))
 
 (provide 'codex-config)
