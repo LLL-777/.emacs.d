@@ -3,6 +3,8 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (setq use-package-always-ensure t)
 
+(require 'file-safety-config)
+
 (use-package ace-window
   :bind ("C-x o" . ace-window))
 
@@ -68,6 +70,22 @@
 (use-package undo-tree
   :init
   (global-undo-tree-mode 1))
+
+(use-package diff-hl
+  :init
+  (global-diff-hl-mode 1)
+  :hook
+  (dired-mode . diff-hl-dired-mode)
+  :bind
+  (("C-c d h" . diff-hl-show-hunk)
+   ("C-c d n" . diff-hl-next-hunk)
+   ("C-c d p" . diff-hl-previous-hunk)
+   ("C-c d r" . diff-hl-revert-hunk))
+  :config
+  (diff-hl-flydiff-mode 1)
+  (require 'diff-hl-show-hunk)
+  (setq diff-hl-show-hunk-function #'diff-hl-show-hunk-inline-popup)
+  (global-diff-hl-show-hunk-mouse-mode 1))
 
 (mapc #'require
       '(vertico-config
