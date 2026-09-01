@@ -10,7 +10,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'pulse)
+(require 'diff-mode)
 (require 'seq)
 (require 'subr-x)
 (require 'tab-bar)
@@ -24,19 +24,51 @@
   :type 'number
   :group 'my/codex-edit-visibility)
 
-(defface my/codex-edit-pulse-face
-  '((t :inherit highlight :extend t))
-  "Face used to pulse lines changed by Codex."
+(defcustom my/codex-edit-before-flash-duration 0.8
+  "Total seconds spent flashing each range before Codex edits it."
+  :type 'number
+  :group 'my/codex-edit-visibility)
+
+(defcustom my/codex-edit-after-flash-duration 0.8
+  "Total seconds spent flashing each range after Codex edits it."
+  :type 'number
+  :group 'my/codex-edit-visibility)
+
+(defcustom my/codex-edit-flash-count 2
+  "Number of visible flashes used for each Codex edit range."
+  :type 'integer
+  :group 'my/codex-edit-visibility)
+
+(defface my/codex-edit-before-face
+  '((t :inherit diff-removed :extend t))
+  "Face used to flash content immediately before a Codex edit."
+  :group 'my/codex-edit-visibility)
+
+(defface my/codex-edit-after-face
+  '((t :inherit diff-added :extend t))
+  "Face used to flash content immediately after a Codex edit."
   :group 'my/codex-edit-visibility)
 
 (defconst my/codex-edit-visibility-prompt
+  "
+<codex-edit-visibility>
+- Visible file editing is mandatory.  Edit files sequentially, one file per patch.
+- Before changing or creating a file, call emacs_show_file_buffer with its absolute path and the first planned edit line.
+- For every planned edit block, call emacs_get_buffer_slice with the returned buffer name and explicit start-line and end-line.  This is the mandatory pre-edit range preview; wait for every call to finish before writing.
+- If either preparation call reports an unsaved-buffer conflict, do not edit the file.
+- After each file write, allow Emacs to refresh, flash the changed lines, and close the Codex pane before proceeding to the next file.
+- Do not combine multiple files in one apply_patch call unless a tool unavoidably changes them together.
+</codex-edit-visibility>"
+  "Instructions appended to the Codex session baseline prompt.")
+
+(defconst my/codex-edit--legacy-prompt
   "
 - Visible file editing is mandatory.  Edit files sequentially, one file per patch.
 - Before changing or creating a file, call emacs_show_file_buffer with its absolute path and the first planned edit line.
 - Wait for that call to succeed before writing.  If it reports an unsaved-buffer conflict, do not edit the file.
 - After each file write, allow Emacs to refresh and pulse the changed lines before proceeding to the next file.
 - Do not combine multiple files in one apply_patch call unless a tool unavoidably changes them together."
-  "Instructions appended to the Codex session baseline prompt.")
+  "Unmarked prompt emitted by the first visibility implementation.")
 
 (defvar my/codex-edit--tabs (make-hash-table :test #'equal)
   "Map absolute file names to their Codex editing tab names.")
@@ -52,6 +84,15 @@
 
 (defvar my/codex-edit--overview-tab nil
   "Name of the combined-diff tab for the current Codex turn.")
+
+(defvar my/codex-edit--active-session nil
+  "Codex session whose transcript follows the current edit tabs.")
+
+(defvar my/codex-edit--pending-preview-buffer nil
+  "File buffer awaiting explicit pre-edit range previews.")
+
+(defvar my/codex-edit--preview-deadline 0.0
+  "Absolute time before which the current pre-edit flash must remain visible.")
 
 (defun my/codex-edit--tab-names ()
   "Return names of tabs on the selected frame."
@@ -84,6 +125,25 @@
   (set-window-point (selected-window) (point))
   (recenter))
 
+(defun my/codex-edit--show-session-pane ()
+  "Show the active Codex transcript to the right of the selected file."
+  (when-let* ((session my/codex-edit--active-session)
+              (buffer (codex-ide-session-buffer session))
+              ((buffer-live-p buffer)))
+    (let ((file-window (selected-window))
+          (codex-window (split-window-right)))
+      (set-window-buffer codex-window buffer)
+      ;; Follow new transcript output without moving point in the Codex buffer.
+      (set-window-point codex-window
+                        (with-current-buffer buffer (point-max)))
+      (select-window file-window))))
+
+(defun my/codex-edit--leave-file-only (buffer)
+  "Leave BUFFER as the only window in its current edit tab."
+  (when-let* ((window (get-buffer-window buffer (selected-frame))))
+    (select-window window)
+    (delete-other-windows)))
+
 (defun my/codex-edit-show-file (path &optional line column)
   "Show PATH in its selected Codex tab at LINE and COLUMN.
 
@@ -110,6 +170,8 @@ Codex write would otherwise discard those edits."
       (switch-to-buffer buffer))
     (delete-other-windows)
     (my/codex-edit--goto line column)
+    (setq my/codex-edit--pending-preview-buffer buffer)
+    (my/codex-edit--show-session-pane)
     buffer))
 
 (defun my/codex-edit--bridge-show-file-buffer (params)
@@ -125,6 +187,70 @@ Codex write would otherwise discard those edits."
        `((window-id . ,(format "%s" (selected-window)))
          (tab . ,(gethash (expand-file-name path)
                           my/codex-edit--tabs)))))))
+
+(defun my/codex-edit--flash-region (beg end face duration)
+  "Flash BEG through END asynchronously with FACE for DURATION seconds."
+  (let* ((count (max 1 my/codex-edit-flash-count))
+         (duration (max 0.1 duration))
+         (cycle (/ duration count))
+         (on-time (* cycle 0.72))
+         (overlay (make-overlay beg end nil t nil)))
+    (overlay-put overlay 'face face)
+    (force-window-update (overlay-buffer overlay))
+    (dotimes (index count)
+      (when (> index 0)
+        (run-at-time
+         (* index cycle) nil
+         (lambda (item flash-face)
+           (when (overlay-buffer item)
+             (overlay-put item 'face flash-face)
+             (force-window-update (overlay-buffer item))))
+         overlay face))
+      (run-at-time
+       (+ (* index cycle) on-time) nil
+       (lambda (item)
+         (when (overlay-buffer item)
+           (overlay-put item 'face nil)
+           (force-window-update (overlay-buffer item))))
+       overlay))
+    (run-at-time duration nil
+                 (lambda (item)
+                   (when (overlayp item)
+                     (delete-overlay item)))
+                 overlay)
+    duration))
+
+(defun my/codex-edit--flash-line-ranges (ranges face duration)
+  "Visit and flash inclusive line RANGES with FACE for DURATION seconds."
+  (dolist (range ranges)
+    (my/codex-edit--goto (car range) 1)
+    (pcase-let ((`(,beg . ,end)
+                 (my/codex-edit--line-region (car range) (cdr range))))
+      (my/codex-edit--flash-region beg end face duration)))
+  duration)
+
+(defun my/codex-edit--preview-slice-advice (original params)
+  "Use explicit slice PARAMS around ORIGINAL as a pre-edit visual handshake."
+  (let ((result (funcall original params)))
+    (when-let* ((requested-start (alist-get 'start-line params))
+                (requested-end (alist-get 'end-line params))
+                ((integerp requested-start))
+                ((integerp requested-end))
+                (buffer (get-buffer (alist-get 'buffer result)))
+                ((eq buffer my/codex-edit--pending-preview-buffer))
+                (window (get-buffer-window buffer (selected-frame))))
+      (select-window window)
+      (my/codex-edit--flash-line-ranges
+       (list (cons (alist-get 'start-line result)
+                   (alist-get 'end-line result)))
+       'my/codex-edit-before-face
+       my/codex-edit-before-flash-duration)
+      ;; Completed file presentations wait for the old-content flash, even if
+      ;; the external patch itself finishes almost immediately.
+      (setq my/codex-edit--preview-deadline
+            (max my/codex-edit--preview-deadline
+                 (+ (float-time) my/codex-edit-before-flash-duration))))
+    result))
 
 (defun my/codex-edit--session-item-table (session)
   "Return the file-change state table for SESSION, creating it if needed."
@@ -145,7 +271,10 @@ Codex write would otherwise discard those edits."
   "Reset transient edit presentation state for SESSION's new turn."
   (remhash session my/codex-edit--session-items)
   (clrhash my/codex-edit--tabs)
-  (setq my/codex-edit--overview-tab nil))
+  (setq my/codex-edit--overview-tab nil
+        my/codex-edit--active-session session
+        my/codex-edit--pending-preview-buffer nil
+        my/codex-edit--preview-deadline 0.0))
 
 (defun my/codex-edit--strip-diff-path (path)
   "Return a project-relative path from a unified-diff PATH."
@@ -196,36 +325,72 @@ Codex write would otherwise discard those edits."
           paths))))
 
 (defun my/codex-edit--diff-ranges (diff directory)
-  "Return an alist mapping DIFF files to changed new-line ranges.
+  "Return an alist mapping DIFF files to exact added new-line ranges.
 
-Each range is a cons cell (START . END), using one-based inclusive lines.
-Deletion-only hunks point at the closest surviving line."
-  (let (result current-path old-path)
-    (dolist (line (split-string (or diff "") "\n"))
-      (cond
-       ((string-match (rx line-start "---" (+ space) (group (+ nonl))) line)
-        (setq old-path (my/codex-edit--strip-diff-path (match-string 1 line))))
-       ((string-match (rx line-start "+++" (+ space) (group (+ nonl))) line)
-        (setq current-path
-              (or (my/codex-edit--strip-diff-path (match-string 1 line))
-                  old-path)))
-       ((and current-path
-             (string-match
-              (rx line-start "@@" (+ space)
-                  "-" (+ digit) (? "," (+ digit)) (+ space)
-                  "+" (group (+ digit)) (? "," (group (+ digit))) (+ space)
-                  "@@")
-              line))
-        (let* ((start (string-to-number (match-string 1 line)))
-               (count (if (match-string 2 line)
-                          (string-to-number (match-string 2 line))
-                        1))
-               (end (+ start (max 1 count) -1))
-               (file (expand-file-name current-path directory))
-               (entry (assoc file result)))
-          (if entry
-              (setcdr entry (append (cdr entry) (list (cons start end))))
-            (push (list file (cons start end)) result))))))
+Each range is a one-based inclusive (START . END) pair.  A deletion-only hunk
+uses its closest surviving line so the completed deletion remains visible."
+  (let (result current-path old-path in-hunk new-line run-start
+               hunk-anchor hunk-added hunk-deleted)
+    (cl-labels
+        ((record-range
+          (start end)
+          (when current-path
+            (let* ((file (expand-file-name current-path directory))
+                   (entry (assoc file result))
+                   (range (cons (max 1 start) (max 1 end))))
+              (if entry
+                  (setcdr entry (append (cdr entry) (list range)))
+                (push (list file range) result)))))
+         (finish-run
+          ()
+          (when run-start
+            (record-range run-start (1- new-line))
+            (setq run-start nil)))
+         (finish-hunk
+          ()
+          (finish-run)
+          (when (and in-hunk hunk-deleted (not hunk-added))
+            (record-range hunk-anchor hunk-anchor))
+          (setq in-hunk nil)))
+      (dolist (line (split-string (or diff "") "\n"))
+        (cond
+         ((string-match (rx line-start "---" (+ space) (group (+ nonl))) line)
+          (finish-hunk)
+          (setq old-path
+                (my/codex-edit--strip-diff-path (match-string 1 line))))
+         ((string-match (rx line-start "+++" (+ space) (group (+ nonl))) line)
+          (finish-hunk)
+          (setq current-path
+                (or (my/codex-edit--strip-diff-path (match-string 1 line))
+                    old-path)))
+         ((and current-path
+               (string-match
+                (rx line-start "@@" (+ space)
+                    "-" (+ digit) (? "," (+ digit)) (+ space)
+                    "+" (group (+ digit)) (? "," (+ digit)) (+ space)
+                    "@@")
+                line))
+          (finish-hunk)
+          (setq in-hunk t
+                new-line (string-to-number (match-string 1 line))
+                hunk-anchor (max 1 new-line)
+                hunk-added nil
+                hunk-deleted nil
+                run-start nil))
+         ((and in-hunk (string-prefix-p "+" line))
+          (unless run-start
+            (setq run-start new-line))
+          (setq hunk-added t
+                new-line (1+ new-line)))
+         ((and in-hunk (string-prefix-p "-" line))
+          (finish-run)
+          (setq hunk-deleted t))
+         ((and in-hunk (string-prefix-p " " line))
+          (finish-run)
+          (setq new-line (1+ new-line)))
+         ((and in-hunk (not (string-prefix-p "\\" line)))
+          (finish-hunk))))
+      (finish-hunk))
     (nreverse result)))
 
 (defun my/codex-edit--line-region (start end)
@@ -238,7 +403,7 @@ Deletion-only hunks point at the closest surviving line."
       (cons beg (max beg (point))))))
 
 (defun my/codex-edit--refresh-and-pulse (path ranges)
-  "Refresh PATH, select its tab, and pulse changed line RANGES."
+  "Refresh PATH, flash changed line RANGES, and leave its file-only tab."
   (let ((buffer (find-buffer-visiting path)))
     (when (and buffer (buffer-modified-p buffer))
       (message "Codex refresh blocked; buffer has unsaved changes: %s" path)
@@ -254,29 +419,47 @@ Deletion-only hunks point at the closest surviving line."
            path
            (or (caar ranges) 1)
            1)
-          (dolist (range (or ranges '((1 . 1))))
-            (pcase-let ((`(,beg . ,end)
-                         (my/codex-edit--line-region (car range) (cdr range))))
-              (pulse-momentary-highlight-region
-               beg end 'my/codex-edit-pulse-face))))
+          (setq my/codex-edit--pending-preview-buffer nil)
+          (my/codex-edit--flash-line-ranges
+           (or ranges '((1 . 1)))
+           'my/codex-edit-after-face
+           my/codex-edit-after-flash-duration)
+          (run-at-time my/codex-edit-after-flash-duration nil
+                       #'my/codex-edit--leave-file-only buffer)
+          (cons :delay (+ my/codex-edit-after-flash-duration 0.1)))
       ;; Keep the pre-delete contents visible and read-only; the final diff tab
       ;; is the authoritative presentation of what was removed.
       (when buffer
         (my/codex-edit-show-file path (or (caar ranges) 1) 1)
-        (message "Codex deleted file: %s" path)))))
+        (setq my/codex-edit--pending-preview-buffer nil)
+        (my/codex-edit--flash-line-ranges
+         (or ranges '((1 . 1)))
+         'my/codex-edit-before-face
+         my/codex-edit-after-flash-duration)
+        (run-at-time my/codex-edit-after-flash-duration nil
+                     #'my/codex-edit--leave-file-only buffer)
+        (message "Codex deleted file: %s" path)
+        (cons :delay (+ my/codex-edit-after-flash-duration 0.1))))))
 
 (defun my/codex-edit--run-next-presentation ()
   "Run the next queued presentation action."
   (setq my/codex-edit--presentation-timer nil)
   (when-let* ((action (pop my/codex-edit--presentation-queue)))
-    (condition-case err
-        (funcall action)
-      (error (message "Codex edit presentation failed: %s"
-                      (error-message-string err))))
-    (when my/codex-edit--presentation-queue
-      (setq my/codex-edit--presentation-timer
-            (run-at-time my/codex-edit-presentation-interval nil
-                         #'my/codex-edit--run-next-presentation)))))
+    (let ((result
+           (condition-case err
+               (funcall action)
+             (error
+              (message "Codex edit presentation failed: %s"
+                       (error-message-string err))
+              nil))))
+      (when my/codex-edit--presentation-queue
+        (setq my/codex-edit--presentation-timer
+              (run-at-time (max my/codex-edit-presentation-interval
+                                (if (eq (car-safe result) :delay)
+                                    (cdr result)
+                                  0))
+                           nil
+                           #'my/codex-edit--run-next-presentation))))))
 
 (defun my/codex-edit--enqueue-presentation (action)
   "Append zero-argument ACTION to the presentation queue."
@@ -284,7 +467,10 @@ Deletion-only hunks point at the closest surviving line."
         (append my/codex-edit--presentation-queue (list action)))
   (unless (timerp my/codex-edit--presentation-timer)
     (setq my/codex-edit--presentation-timer
-          (run-at-time 0 nil #'my/codex-edit--run-next-presentation))))
+          (run-at-time (max 0.0
+                            (- my/codex-edit--preview-deadline
+                               (float-time)))
+                       nil #'my/codex-edit--run-next-presentation))))
 
 (defun my/codex-edit--begin-file-change (session item)
   "Record and visibly prepare a file-change ITEM for SESSION."
@@ -300,13 +486,17 @@ Deletion-only hunks point at the closest surviving line."
     ;; This is a fallback for edits that did not make the mandatory MCP call.
     ;; Window changes are deferred out of the process filter.
     (dolist (path paths)
-      (run-at-time 0 nil
-                   (lambda (file)
-                     (condition-case err
-                         (my/codex-edit-show-file file 1 1)
-                       (error (message "Codex edit display failed: %s"
-                                       (error-message-string err)))))
-                   path))))
+      (unless (my/codex-edit--live-tab-p (gethash path my/codex-edit--tabs))
+        (run-at-time 0 nil
+                     (lambda (file)
+                       (condition-case err
+                           (progn
+                             (my/codex-edit-show-file file 1 1)
+                             (setq my/codex-edit--pending-preview-buffer nil))
+                         (error (message "Codex edit display failed: %s"
+                                         (error-message-string err)))))
+                     path)))
+    (setq my/codex-edit--pending-preview-buffer nil)))
 
 (defun my/codex-edit--append-file-change-delta (session item-id delta)
   "Append file-change DELTA to SESSION's ITEM-ID state."
@@ -395,6 +585,18 @@ Deletion-only hunks point at the closest surviving line."
        (lambda ()
          (my/codex-edit--show-overview session turn-id))))))
 
+(defun my/codex-edit--without-managed-prompt (prompt)
+  "Return PROMPT without legacy or marker-delimited visibility instructions."
+  (let ((text (string-replace my/codex-edit--legacy-prompt "" prompt))
+        (start-marker "<codex-edit-visibility>")
+        (end-marker "</codex-edit-visibility>"))
+    (while-let ((start (string-match (regexp-quote start-marker) text))
+                (end (string-match (regexp-quote end-marker) text start)))
+      (setq text
+            (concat (substring text 0 start)
+                    (substring text (+ end (length end-marker))))))
+    (string-trim-right text)))
+
 (defun my/codex-edit-visibility-install ()
   "Install the Codex visible-editing workflow."
   (unless (advice-member-p #'my/codex-edit--bridge-show-file-buffer
@@ -405,16 +607,19 @@ Deletion-only hunks point at the closest surviving line."
                            'codex-ide--handle-notification)
     (advice-add 'codex-ide--handle-notification
                 :around #'my/codex-edit--notification-advice))
+  (unless (advice-member-p #'my/codex-edit--preview-slice-advice
+                           'codex-ide-mcp-bridge--tool-call--get_buffer_slice)
+    (advice-add 'codex-ide-mcp-bridge--tool-call--get_buffer_slice
+                :around #'my/codex-edit--preview-slice-advice))
   (add-hook 'codex-ide-session-event-hook
             #'my/codex-edit-handle-session-event)
-  (unless (string-match-p
-           (regexp-quote "Visible file editing is mandatory")
-           (or codex-ide-session-baseline-prompt ""))
-    (setq codex-ide-session-baseline-prompt
-          (concat (string-trim-right
-                   (or codex-ide-session-baseline-prompt ""))
-                  "\n"
-                  my/codex-edit-visibility-prompt))))
+  ;; Replace our managed block on every reload so prompt behavior cannot lag
+  ;; behind the installed implementation.
+  (setq codex-ide-session-baseline-prompt
+        (concat
+         (my/codex-edit--without-managed-prompt
+          (or codex-ide-session-baseline-prompt ""))
+         my/codex-edit-visibility-prompt)))
 
 (provide 'codex-edit-visibility)
 

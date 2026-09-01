@@ -51,8 +51,27 @@
          ("C-c G" . consult-git-grep)
          ("C-x b" . consult-buffer)
          ("M-y" . consult-yank-pop)
+         ;; Keep navigation commands together under Emacs's `M-g' prefix.
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)
+         ("M-g g" . consult-goto-line)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g o" . consult-outline)
+         ;; Uppercase L is the multi-buffer counterpart of `consult-line'.
+         ("M-s L" . consult-line-multi)
          ([remap imenu] . consult-imenu)
          ([remap recentf-open-files] . consult-recent-file)))
+
+;; Org headings carry richer metadata than generic outline entries, so use the
+;; Org-aware navigator while preserving the `M-g o' navigation convention.
+(use-package consult-org
+  :ensure nil
+  :after org
+  :bind (:map org-mode-map
+              ("M-g o" . consult-org-heading)))
 
 ;; Embark: “右键菜单”功能
 (use-package embark
