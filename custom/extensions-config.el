@@ -90,6 +90,7 @@
 (mapc #'require
       '(vertico-config
         c-cpp-config
+        mql5-config
         rust-config
         common-lisp-config
         julia-config

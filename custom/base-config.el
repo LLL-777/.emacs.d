@@ -79,20 +79,20 @@
 (setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode 1)
 
-(defun go-line-with-feedback ()
-  "Read a line number while temporarily displaying absolute line numbers."
-  (interactive)
-  (let ((previous-type display-line-numbers-type))
-    (unwind-protect
-        (progn
-          (setq display-line-numbers-type 'absolute)
-          (display-line-numbers-mode 1)
-          (goto-char (point-min))
-          (forward-line (1- (read-number "Goto line: "))))
-      (setq display-line-numbers-type previous-type)
-      (global-display-line-numbers-mode 1))))
+;; (defun go-line-with-feedback ()
+;;   "Read a line number while temporarily displaying absolute line numbers."
+;;   (interactive)
+;;   (let ((previous-type display-line-numbers-type))
+;;     (unwind-protect
+;;         (progn
+;;           (setq display-line-numbers-type 'absolute)
+;;           (display-line-numbers-mode 1)
+;;           (goto-char (point-min))
+;;           (forward-line (1- (read-number "Goto line: "))))
+;;       (setq display-line-numbers-type previous-type)
+;;       (global-display-line-numbers-mode 1))))
 
-(global-set-key [remap goto-line] #'go-line-with-feedback)
+;; (global-set-key [remap goto-line] #'go-line-with-feedback)
 
 (setq electric-pair-pairs
       '((?\" . ?\")

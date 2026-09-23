@@ -72,6 +72,8 @@
     ;;(treemacs-resize-icons 44)
 
     (treemacs-follow-mode t)
+    ;; Follow project roots too; file following alone keeps the saved workspace.
+    (treemacs-project-follow-mode 1)
     (treemacs-filewatch-mode t)
     (treemacs-fringe-indicator-mode 'always)
     (when treemacs-python-executable
@@ -104,7 +106,11 @@
   :demand t
   :after treemacs
   :config
-  (project-treemacs-mode))
+  ;; Prefer native project detection over roots restored by Treemacs.
+  ;; Re-register the backend so reloading this file also updates its priority.
+  (project-treemacs-mode -1)
+  (setq project-treemacs-prefer-backend nil)
+  (project-treemacs-mode 1))
 
 (use-package treemacs-magit
   :after (treemacs magit)

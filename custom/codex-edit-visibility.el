@@ -2,10 +2,11 @@
 
 ;;; Commentary:
 
-;; Present Codex file edits as a visible, sequential workflow.  Each target
-;; file gets its own tab, completed hunks pulse in place, and the turn ends on
-;; a dedicated combined-diff tab.  All writes remain owned by Codex; this
-;; module only keeps clean Emacs buffers synchronized with the files on disk.
+;; Present Codex file edits as a visible, sequential workflow.  Existing file
+;; tabs are reused, new targets receive their own tabs, and completed hunks
+;; flash in place.  The turn ends with the combined diff on the left and the
+;; Codex transcript on the right of the final file tab.  All writes remain
+;; owned by Codex; this module only synchronizes clean Emacs buffers with disk.
 
 ;;; Code:
 
@@ -56,7 +57,9 @@
 - Before changing or creating a file, call emacs_show_file_buffer with its absolute path and the first planned edit line.
 - For every planned edit block, call emacs_get_buffer_slice with the returned buffer name and explicit start-line and end-line.  This is the mandatory pre-edit range preview; wait for every call to finish before writing.
 - If either preparation call reports an unsaved-buffer conflict, do not edit the file.
-- After each file write, allow Emacs to refresh, flash the changed lines, and close the Codex pane before proceeding to the next file.
+- Reuse the file's existing tab whenever its buffer is already open.  Create a new tab only for a file that was not open before preparation.
+- After each file write, allow Emacs to refresh and flash the changed lines before proceeding to the next file.  Starting another file closes the previous file's Codex pane.
+- Keep the Codex pane beside the last edited file.  At turn completion, show the combined diff on the left and the Codex transcript on the right in that same tab.
 - Do not combine multiple files in one apply_patch call unless a tool unavoidably changes them together.
 </codex-edit-visibility>"
   "Instructions appended to the Codex session baseline prompt.")
@@ -82,11 +85,11 @@
 (defvar my/codex-edit--presentation-timer nil
   "Timer currently advancing `my/codex-edit--presentation-queue'.")
 
-(defvar my/codex-edit--overview-tab nil
-  "Name of the combined-diff tab for the current Codex turn.")
-
 (defvar my/codex-edit--active-session nil
   "Codex session whose transcript follows the current edit tabs.")
+
+(defvar my/codex-edit--last-completed-buffer nil
+  "File buffer most recently presented as a completed Codex edit.")
 
 (defvar my/codex-edit--pending-preview-buffer nil
   "File buffer awaiting explicit pre-edit range previews.")
@@ -113,6 +116,15 @@
   "Return non-nil when a tab named NAME exists on the selected frame."
   (and (stringp name)
        (member name (my/codex-edit--tab-names))))
+
+(defun my/codex-edit--current-tab-name ()
+  "Return the selected tab's name."
+  (alist-get 'name (tab-bar--current-tab)))
+
+(defun my/codex-edit--buffer-tab-name (buffer)
+  "Return the selected-frame tab displaying BUFFER, when one exists."
+  (when-let* ((tab (tab-bar-get-buffer-tab buffer)))
+    (alist-get 'name tab)))
 
 (defun my/codex-edit--goto (line column)
   "Move point to one-based LINE and COLUMN, then center it visibly."
@@ -144,28 +156,50 @@
     (select-window window)
     (delete-other-windows)))
 
+(defun my/codex-edit--finish-previous-file (next-buffer)
+  "Close the previous file's Codex pane before showing NEXT-BUFFER."
+  (when (and (buffer-live-p my/codex-edit--last-completed-buffer)
+             (not (eq my/codex-edit--last-completed-buffer next-buffer)))
+    (when-let* ((tab-name
+                 (my/codex-edit--buffer-tab-name
+                  my/codex-edit--last-completed-buffer)))
+      (tab-bar-switch-to-tab tab-name)
+      (my/codex-edit--leave-file-only my/codex-edit--last-completed-buffer))
+    (setq my/codex-edit--last-completed-buffer nil)))
+
 (defun my/codex-edit-show-file (path &optional line column)
   "Show PATH in its selected Codex tab at LINE and COLUMN.
 
-Create the visiting buffer and tab when needed.  Refuse to proceed when the
-buffer contains unsaved user edits, since refreshing it after an external
-Codex write would otherwise discard those edits."
+Reuse an existing buffer's tab and create a tab only for a previously unopened
+file.  Refuse to proceed when the buffer contains unsaved user edits, since
+refreshing it after an external Codex write would discard those edits."
   (let* ((file (expand-file-name path))
-         (buffer (find-file-noselect file))
-         (known-tab (gethash file my/codex-edit--tabs)))
+         (existing-buffer (find-buffer-visiting file))
+         (buffer (or existing-buffer (find-file-noselect file)))
+         (known-tab (gethash file my/codex-edit--tabs))
+         (existing-tab (and existing-buffer
+                            (my/codex-edit--buffer-tab-name buffer))))
     (when (buffer-modified-p buffer)
       (user-error "Codex edit blocked; buffer has unsaved changes: %s" file))
     (tab-bar-mode 1)
-    (if (my/codex-edit--live-tab-p known-tab)
-        (tab-bar-switch-to-tab known-tab)
+    (my/codex-edit--finish-previous-file buffer)
+    (cond
+     ((my/codex-edit--live-tab-p known-tab)
+      (tab-bar-switch-to-tab known-tab))
+     (existing-buffer
+      ;; A hidden but already-open buffer reuses the current tab instead of
+      ;; manufacturing a new tab with no prior relationship to that buffer.
+      (when existing-tab
+        (tab-bar-switch-to-tab existing-tab))
+      (puthash file (my/codex-edit--current-tab-name)
+               my/codex-edit--tabs))
+     (t
       (let ((tab-name
              (my/codex-edit--unique-tab-name
               (format "Codex: %s" (file-name-nondirectory file)))))
         (tab-bar-new-tab)
-        (delete-other-windows)
-        (switch-to-buffer buffer)
         (tab-bar-rename-tab tab-name)
-        (puthash file tab-name my/codex-edit--tabs)))
+        (puthash file tab-name my/codex-edit--tabs))))
     (unless (eq (current-buffer) buffer)
       (switch-to-buffer buffer))
     (delete-other-windows)
@@ -271,8 +305,8 @@ Codex write would otherwise discard those edits."
   "Reset transient edit presentation state for SESSION's new turn."
   (remhash session my/codex-edit--session-items)
   (clrhash my/codex-edit--tabs)
-  (setq my/codex-edit--overview-tab nil
-        my/codex-edit--active-session session
+  (setq my/codex-edit--active-session session
+        my/codex-edit--last-completed-buffer nil
         my/codex-edit--pending-preview-buffer nil
         my/codex-edit--preview-deadline 0.0))
 
@@ -403,7 +437,7 @@ uses its closest surviving line so the completed deletion remains visible."
       (cons beg (max beg (point))))))
 
 (defun my/codex-edit--refresh-and-pulse (path ranges)
-  "Refresh PATH, flash changed line RANGES, and leave its file-only tab."
+  "Refresh PATH and flash changed line RANGES while retaining its Codex pane."
   (let ((buffer (find-buffer-visiting path)))
     (when (and buffer (buffer-modified-p buffer))
       (message "Codex refresh blocked; buffer has unsaved changes: %s" path)
@@ -424,8 +458,7 @@ uses its closest surviving line so the completed deletion remains visible."
            (or ranges '((1 . 1)))
            'my/codex-edit-after-face
            my/codex-edit-after-flash-duration)
-          (run-at-time my/codex-edit-after-flash-duration nil
-                       #'my/codex-edit--leave-file-only buffer)
+          (setq my/codex-edit--last-completed-buffer buffer)
           (cons :delay (+ my/codex-edit-after-flash-duration 0.1)))
       ;; Keep the pre-delete contents visible and read-only; the final diff tab
       ;; is the authoritative presentation of what was removed.
@@ -436,8 +469,7 @@ uses its closest surviving line so the completed deletion remains visible."
          (or ranges '((1 . 1)))
          'my/codex-edit-before-face
          my/codex-edit-after-flash-duration)
-        (run-at-time my/codex-edit-after-flash-duration nil
-                     #'my/codex-edit--leave-file-only buffer)
+        (setq my/codex-edit--last-completed-buffer buffer)
         (message "Codex deleted file: %s" path)
         (cons :delay (+ my/codex-edit-after-flash-duration 0.1))))))
 
@@ -551,30 +583,35 @@ uses its closest surviving line so the completed deletion remains visible."
         (my/codex-edit--complete-file-change session item)))))
 
 (defun my/codex-edit--show-overview (session turn-id)
-  "Create and select a combined Diff tab for SESSION and TURN-ID."
+  "Show SESSION TURN-ID's diff left of Codex in the final edited file tab."
   (when-let* ((diff-text
                (condition-case nil
                    (codex-ide-diff-data-combined-turn-diff-text session turn-id)
                  (user-error nil)))
-              ((not (string-empty-p diff-text))))
-    (tab-bar-mode 1)
-    (if (my/codex-edit--live-tab-p my/codex-edit--overview-tab)
-        (tab-bar-switch-to-tab my/codex-edit--overview-tab)
-      (tab-bar-new-tab)
-      (setq my/codex-edit--overview-tab
-            (my/codex-edit--unique-tab-name "Codex Diff")))
+              ((not (string-empty-p diff-text)))
+              (file-buffer my/codex-edit--last-completed-buffer)
+              ((buffer-live-p file-buffer))
+              (tab-name (my/codex-edit--buffer-tab-name file-buffer)))
+    (tab-bar-switch-to-tab tab-name)
+    (when-let* ((file-window
+                 (get-buffer-window file-buffer (selected-frame))))
+      (select-window file-window))
     (delete-other-windows)
-    (tab-bar-rename-tab my/codex-edit--overview-tab)
     (let ((buffer
-           (codex-ide-diff-open-buffer
-            diff-text
-            (codex-ide-diff-combined-buffer-name-for-session
-             (codex-ide-session-buffer session))
-            (codex-ide-session-directory session)
-            :select t)))
+           ;; The renderer normally displays its buffer immediately.  Suppress
+           ;; that side effect so this function alone owns the final layout.
+           (cl-letf (((symbol-function 'codex-ide-display-buffer)
+                      (lambda (diff-buffer &rest _args) diff-buffer)))
+             (codex-ide-diff-open-buffer
+              diff-text
+              (codex-ide-diff-combined-buffer-name-for-session
+               (codex-ide-session-buffer session))
+              (codex-ide-session-directory session)
+              :select nil))))
       (switch-to-buffer buffer)
-      (delete-other-windows)
-      (goto-char (point-min)))))
+      (goto-char (point-min))
+      (setq my/codex-edit--active-session session)
+      (my/codex-edit--show-session-pane))))
 
 (defun my/codex-edit-handle-session-event (event session payload)
   "Handle Codex EVENT for SESSION using event PAYLOAD."

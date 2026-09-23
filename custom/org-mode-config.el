@@ -19,6 +19,17 @@
   :ensure t
   :hook (org-mode . org-modern-mode))
 
+(use-package gnuplot
+  :ensure t
+  :defer t)
+
+(with-eval-after-load 'org
+  ;; 保留其他已启用的 Babel 语言，并加入直接执行 gnuplot 代码块的支持。
+  (add-to-list 'org-babel-load-languages '(gnuplot . t))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   org-babel-load-languages))
+
 ;; (use-package org-fragtog
 ;;   :ensure t
 ;;   ;; :hook (org-mode . org-fragtog-mode)
