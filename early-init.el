@@ -7,6 +7,10 @@
       package-enable-at-startup t
       package-quickstart t)
 
+;; codex-ide's generated autoloads use `transient-define-prefix'.
+;; Quickstart loads those autoloads before init.el, so load the macro first.
+(require 'transient)
+
 (defun my/restore-gc-after-startup ()
   "Restore GC settings suitable for normal interactive use."
   (setq gc-cons-threshold (* 32 1024 1024)

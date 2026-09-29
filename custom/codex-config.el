@@ -52,6 +52,15 @@
     (my/codex-assert-project-file-buffers-clean session))
   (apply original args))
 
+;; NonGNU ELPA also has a package named codex-ide, but its Lisp files live
+;; in a "lisp" subdirectory.  This checkout keeps them at the repository root.
+(require 'package-vc)
+(require 'transient)
+(setf (alist-get "codex-ide" package-vc-selected-packages
+                 nil nil #'string=)
+      '(:url "https://github.com/dgillis/emacs-codex-ide"
+        :lisp-dir "."))
+
 (use-package codex-ide
   :vc (:url "https://github.com/dgillis/emacs-codex-ide" :rev :newest)
   :bind ("C-c c" . codex-ide-menu)
