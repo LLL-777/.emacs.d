@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# This file is passed to startx as a client script from a Linux TTY.
+export XDG_CURRENT_DESKTOP=EXWM
+export XDG_SESSION_DESKTOP=EXWM
+export XDG_SESSION_TYPE=x11
+export XMODIFIERS=@im=exwm-xim
+export GTK_IM_MODULE=xim
+export QT_IM_MODULE=xim
+export CLUTTER_IM_MODULE=xim
+
+# The built-in panel is 3072x1920; Xorg otherwise reports only 96 DPI.
+printf '%s\n' 'Xft.dpi: 192' | xrdb -merge
+
+touchpad_id=$(xinput list --id-only "pointer:Apple Inc. Apple Internal Keyboard / Trackpad" 2>/dev/null)
+if [ -z "$touchpad_id" ]; then
+  touchpad_id=$(xinput list --id-only "pointer:bcm5974" 2>/dev/null)
+fi
+if [ -n "$touchpad_id" ]; then
+  xinput set-prop "$touchpad_id" "libinput Tapping Enabled" 1
+  xinput set-prop "$touchpad_id" "libinput Accel Speed" 1
+fi
+
+log_dir="${XDG_STATE_HOME:-$HOME/.local/state}/exwm"
+mkdir -p "$log_dir"
+
+# Load the usual Emacs configuration before the EXWM-only session file.
+# Keep startup errors for diagnosis if the graphical session is unusable.
+exec /snap/bin/emacs --debug-init --xrm 'emacs.useXIM:false' \
+  --load "$HOME/.emacs.d/exwm/session.el" \
+  >"$log_dir/startup.log" 2>&1
