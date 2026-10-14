@@ -142,13 +142,12 @@
   (when-let* ((session my/codex-edit--active-session)
               (buffer (codex-ide-session-buffer session))
               ((buffer-live-p buffer)))
-    (let ((file-window (selected-window))
-          (codex-window (split-window-right)))
+    (let ((codex-window (split-window-right)))
       (set-window-buffer codex-window buffer)
       ;; Follow new transcript output without moving point in the Codex buffer.
       (set-window-point codex-window
                         (with-current-buffer buffer (point-max)))
-      (select-window file-window))))
+      (select-window codex-window))))
 
 (defun my/codex-edit--leave-file-only (buffer)
   "Leave BUFFER as the only window in its current edit tab."
@@ -218,7 +217,7 @@ refreshing it after an external Codex write would discard those edits."
     (let ((buffer (my/codex-edit-show-file path line column)))
       (codex-ide-mcp-bridge--file-buffer-response
        buffer
-       `((window-id . ,(format "%s" (selected-window)))
+       `((window-id . ,(format "%s" (get-buffer-window buffer (selected-frame))))
          (tab . ,(gethash (expand-file-name path)
                           my/codex-edit--tabs)))))))
 
@@ -273,12 +272,12 @@ refreshing it after an external Codex write would discard those edits."
                 (buffer (get-buffer (alist-get 'buffer result)))
                 ((eq buffer my/codex-edit--pending-preview-buffer))
                 (window (get-buffer-window buffer (selected-frame))))
-      (select-window window)
-      (my/codex-edit--flash-line-ranges
-       (list (cons (alist-get 'start-line result)
-                   (alist-get 'end-line result)))
-       'my/codex-edit-before-face
-       my/codex-edit-before-flash-duration)
+      (with-selected-window window
+        (my/codex-edit--flash-line-ranges
+         (list (cons (alist-get 'start-line result)
+                     (alist-get 'end-line result)))
+         'my/codex-edit-before-face
+         my/codex-edit-before-flash-duration))
       ;; Completed file presentations wait for the old-content flash, even if
       ;; the external patch itself finishes almost immediately.
       (setq my/codex-edit--preview-deadline
@@ -454,10 +453,11 @@ uses its closest surviving line so the completed deletion remains visible."
            (or (caar ranges) 1)
            1)
           (setq my/codex-edit--pending-preview-buffer nil)
-          (my/codex-edit--flash-line-ranges
-           (or ranges '((1 . 1)))
-           'my/codex-edit-after-face
-           my/codex-edit-after-flash-duration)
+          (with-selected-window (get-buffer-window buffer (selected-frame))
+            (my/codex-edit--flash-line-ranges
+             (or ranges '((1 . 1)))
+             'my/codex-edit-after-face
+             my/codex-edit-after-flash-duration))
           (setq my/codex-edit--last-completed-buffer buffer)
           (cons :delay (+ my/codex-edit-after-flash-duration 0.1)))
       ;; Keep the pre-delete contents visible and read-only; the final diff tab
@@ -465,10 +465,11 @@ uses its closest surviving line so the completed deletion remains visible."
       (when buffer
         (my/codex-edit-show-file path (or (caar ranges) 1) 1)
         (setq my/codex-edit--pending-preview-buffer nil)
-        (my/codex-edit--flash-line-ranges
-         (or ranges '((1 . 1)))
-         'my/codex-edit-before-face
-         my/codex-edit-after-flash-duration)
+        (with-selected-window (get-buffer-window buffer (selected-frame))
+          (my/codex-edit--flash-line-ranges
+           (or ranges '((1 . 1)))
+           'my/codex-edit-before-face
+           my/codex-edit-after-flash-duration))
         (setq my/codex-edit--last-completed-buffer buffer)
         (message "Codex deleted file: %s" path)
         (cons :delay (+ my/codex-edit-after-flash-duration 0.1))))))

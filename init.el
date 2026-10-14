@@ -8,6 +8,7 @@
 (require 'base-config)
 (require 'extensions-config)
 
+
 (use-package nyan-mode
   :ensure t
   :init

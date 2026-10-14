@@ -94,10 +94,11 @@
         rust-config
         common-lisp-config
         julia-config
-        ;; dired-config
+        dired-config
         org-mode-config
         codex-config
         magit-config
-        treemacs-config))
+        treemacs-config
+	eat-config))
 
 (provide 'extensions-config)

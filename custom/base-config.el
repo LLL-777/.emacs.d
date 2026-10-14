@@ -32,6 +32,11 @@
 (column-number-mode 1)
 (electric-pair-mode 1)
 
+(when (boundp 'mode-line-collapse-minor-modes)
+  (setq mode-line-collapse-minor-modes t
+        mode-line-collapse-minor-modes-to
+        (propertize " \uf0c9" 'face '(:family "FontAwesome"))))
+
 (autoload 'pulse-momentary-highlight-one-line "pulse")
 
 (defun my/notify-after-revert ()
