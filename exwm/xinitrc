@@ -1,0 +1,122 @@
+#!/bin/sh
+
+# This file is passed to startx as a client script from a Linux TTY.
+# PipeWire/WirePlumber and desktop applications share one user session bus.
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+  exec dbus-run-session -- "$0" "$@"
+fi
+export XDG_CURRENT_DESKTOP=EXWM
+export XDG_SESSION_DESKTOP=EXWM
+export XDG_SESSION_TYPE=x11
+export XMODIFIERS=@im=exwm-xim
+export GTK_IM_MODULE=xim
+export QT_IM_MODULE=xim
+export CLUTTER_IM_MODULE=xim
+export XCURSOR_THEME=DMZ-White
+export XCURSOR_SIZE=32
+
+# The built-in panel is 3072x1920; Xorg otherwise reports only 96 DPI.
+printf '%s\n' 'Xft.dpi: 192' | xrdb -merge
+
+printf '%s\n' \
+  "Xcursor.theme: $XCURSOR_THEME" \
+  "Xcursor.size: $XCURSOR_SIZE" | xrdb -merge
+xsetroot -cursor_name left_ptr
+
+touchpad_id=$(xinput list --id-only "pointer:Apple Inc. Apple Internal Keyboard / Trackpad" 2>/dev/null)
+if [ -z "$touchpad_id" ]; then
+  touchpad_id=$(xinput list --id-only "pointer:bcm5974" 2>/dev/null)
+fi
+if [ -n "$touchpad_id" ]; then
+  xinput set-prop "$touchpad_id" "libinput Tapping Enabled" 1
+  xinput set-prop "$touchpad_id" "libinput Accel Speed" 1
+fi
+
+log_dir="${XDG_STATE_HOME:-$HOME/.local/state}/exwm"
+mkdir -p "$log_dir"
+
+# Start OpenRC user-session audio; keep logs outside the terminal scrollback.
+GENTOO_PIPEWIRE_LOG="$log_dir/pipewire.log" \
+GENTOO_PIPEWIRE_PULSE_LOG="$log_dir/pipewire-pulse.log" \
+GENTOO_WIREPLUMBER_LOG="$log_dir/wireplumber.log" \
+gentoo-pipewire-launcher restart >"$log_dir/pipewire-launcher.log" 2>&1 &
+
+# One daemon belongs to this X11 session.  Resolve both executables from
+# PATH so a different installation can use the same session script.
+startup_log="$log_dir/startup.log"
+: >"$startup_log"
+
+startup_error() {
+  printf 'EXWM startup failed: %s\nLog: %s\n' "$1" "$startup_log" >&2
+  printf 'EXWM startup failed: %s\n' "$1" >>"$startup_log"
+  exit 1
+}
+
+for program in emacs emacsclient timeout; do
+  command -v "$program" >/dev/null 2>&1 || startup_error "Missing program: $program"
+done
+
+# Use the default socket consistently, including for child applications.
+unset EMACS_SOCKET_NAME EMACS_SERVER_FILE
+if timeout 2 emacsclient --socket-name=server --alternate-editor=false \
+     --eval '(emacs-pid)' >/dev/null 2>&1; then
+  startup_error 'The default Emacs server is already running; leave it intact.'
+else
+  probe_status=$?
+  if [ "$probe_status" -eq 124 ]; then
+    startup_error 'The default Emacs server is not responding; inspect it first.'
+  fi
+fi
+
+# --fg-daemon stays in this child process; the shell waits for its lifetime.
+# session.el supplies the host-only XIM resource before its first X frame.
+emacs --fg-daemon --debug-init \
+  --load "$HOME/.emacs.d/exwm/session.el" \
+  </dev/null >>"$startup_log" 2>&1 &
+emacs_pid=$!
+
+cleanup() {
+  session_status=$?
+  trap - 0 HUP INT TERM
+  if [ -n "$emacs_pid" ]; then
+    kill "$emacs_pid" 2>/dev/null || :
+    wait "$emacs_pid" 2>/dev/null || :
+  fi
+  printf '\nEmacs/X11 session exit status: %s\n' "$session_status" >>"$startup_log"
+  exit "$session_status"
+}
+trap cleanup 0
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# Retry only during startup, and verify the socket belongs to our own child.
+attempt=0
+while :; do
+  kill -0 "$emacs_pid" 2>/dev/null || startup_error 'The Emacs daemon exited before becoming ready.'
+  server_pid=$(timeout 2 emacsclient --socket-name=server --alternate-editor=false \
+    --eval '(emacs-pid)' 2>/dev/null) || server_pid=
+  if [ "$server_pid" = "$emacs_pid" ]; then
+    break
+  fi
+  if [ -n "$server_pid" ]; then
+    startup_error 'The default socket belongs to a different Emacs process.'
+  fi
+  attempt=$((attempt + 1))
+  [ "$attempt" -lt 30 ] || startup_error 'Timed out waiting for the Emacs server.'
+  sleep 1
+done
+
+# Returning from this client must not end X11: keep waiting for the daemon.
+timeout 30 emacsclient --socket-name=server --alternate-editor=false \
+  --display="$DISPLAY" --create-frame --no-wait \
+  >>"$startup_log" 2>&1 || startup_error 'Could not create the first X11 frame.'
+desktop_ready=$(timeout 5 emacsclient --socket-name=server --alternate-editor=false \
+  --eval '(and exwm-wm-mode (display-graphic-p))' \
+  2>>"$startup_log") || desktop_ready=
+[ "$desktop_ready" = t ] || startup_error 'EXWM did not initialize on the graphical frame.'
+
+wait "$emacs_pid"
+emacs_status=$?
+emacs_pid=
+exit "$emacs_status"
