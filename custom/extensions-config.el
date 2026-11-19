@@ -3,34 +3,9 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (setq use-package-always-ensure t)
 
-(require 'file-safety-config)
-
-(use-package ace-window
-  :bind ("C-x o" . ace-window))
-
 (use-package which-key
   :config
   (which-key-mode 1))
-
-(use-package company
-  :defer t
-  :hook (after-init . global-company-mode)
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-tooltip-align-annotations t)
-  (company-idle-delay 0.0)
-  (company-show-numbers t)
-  (company-selection-wrap-around t)
-  (company-transformers '(company-sort-by-occurrence)))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode)
-  :custom
-  (company-box-scrollbar nil)
-  :config
-  (add-hook 'term-mode-hook
-            (lambda ()
-              (company-box-mode -1))))
 
 (use-package eglot
   :ensure nil
@@ -88,7 +63,10 @@
   (global-diff-hl-show-hunk-mouse-mode 1))
 
 (mapc #'require
-      '(vertico-config
+      '(file-safety-config
+        ace-window-config
+        company-config
+        vertico-config
         c-cpp-config
         mql5-config
         rust-config
@@ -97,8 +75,11 @@
         dired-config
         org-mode-config
         codex-config
+        buffer-queue-config
         magit-config
-        treemacs-config
-	eat-config))
+	vterm-config
+        treemacs-config))
+
+(buffer-queue-mode 1)
 
 (provide 'extensions-config)

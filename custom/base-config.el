@@ -14,16 +14,16 @@
 
 (set-language-environment "UTF-8")
 
-(when (memq window-system '(mac ns x))
+(when (or (daemonp) (memq window-system '(mac ns x)))
   (use-package exec-path-from-shell
-  :if (display-graphic-p)
-  :ensure t
-  :config
-  (exec-path-from-shell-initialize)
-  ;; 明确加载哪些变量
-  (exec-path-from-shell-copy-envs '("http_proxy" "https_proxy" "all_proxy"))))
+    :ensure t
+    :config
+    (exec-path-from-shell-initialize)
+    (exec-path-from-shell-copy-envs
+     '("http_proxy" "https_proxy" "all_proxy"))))
 
-
+(require 'autorevert)
+(add-to-list 'global-auto-revert-ignore-modes 'Buffer-menu-mode)
 (global-auto-revert-mode 1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -55,6 +55,20 @@
                     :family "JetBrains Mono"
                     :height 140)
 (set-face-attribute 'font-lock-keyword-face nil :slant 'italic)
+(defun my/setup-emoji-font (frame)
+  "Configure the default emoji font when a graphical frame is ready."
+  (when (display-graphic-p frame)
+    (with-selected-frame frame
+      (set-fontset-font t 'emoji
+                        (font-spec :family
+                                   (if (eq system-type 'darwin)
+                                       "Apple Color Emoji"
+                                     "Noto Color Emoji"))
+                        nil 'prepend))
+    (remove-hook 'after-make-frame-functions #'my/setup-emoji-font)))
+
+(add-hook 'after-make-frame-functions #'my/setup-emoji-font)
+(my/setup-emoji-font (selected-frame))
 
 (defun my/clean-shell-mode ()
   "Use predictable process echoing and scrolling in Shell buffers."
@@ -107,7 +121,7 @@
 
 (require 'move-text)
 
-(when (memq window-system '(mac ns x))
+(when (or (daemonp) (memq window-system '(mac ns x)))
   (load-theme 'solarized-dark t))
 
 (provide 'base-config)

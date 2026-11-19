@@ -10,10 +10,9 @@
   (require 'org-tempo)
   (require 'org-gpg-inline-image))
 
-(with-eval-after-load 'company
-  (add-hook 'org-mode-hook
-            (lambda ()
-              (setq-local company-backends '(company-capf)))))
+(add-hook 'org-mode-hook
+          (lambda ()
+            (setq-local company-backends '(company-capf))))
 
 (use-package org-modern
   :ensure t
